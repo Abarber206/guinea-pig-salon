@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balloon Striker - Defend & Pop!</title>
     
     <!-- Social Media Meta Tags -->
-    <meta property="og:title" content="Balloon Striker - Addictive Balloon Defense Game">
-    <meta property="og:description" content="Test your reflexes in this exciting balloon-popping defense game! Pop balloons, protect your target, and climb the leaderboard.">
-    <meta property="og:image" content="https://abarber206.github.io/BalloonStriker/preview.png">
-    <meta property="og:url" content="https://abarber206.github.io/BalloonStriker/">
+    <meta property="og:title" content="Circle Deflection Game">
+    <meta property="og:description" content="Defend your target by deflecting approaching circles in this exciting browser game!">
+    <meta property="og:image" content="https://your-domain.com/game-preview.png">
+    <meta property="og:url" content="https://your-domain.com">
     <meta name="twitter:card" content="summary_large_image">
     
+    <title>Circle Deflection Game</title>
     <style>
         body {
             margin: 0;
@@ -127,6 +127,34 @@
             border-radius: 5px;
             margin-top: 10px;
         }
+        #shareButtons {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        .shareButton {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .facebook { background: #1877f2; }
+        .twitter { background: #1da1f2; }
+        .whatsapp { background: #25d366; }
     </style>
 </head>
 <body>
@@ -164,6 +192,17 @@
             <input type="text" id="playerName" placeholder="Your Name" maxlength="10">
             <button onclick="saveScore()">Submit Score</button>
             <button onclick="location.reload()">Play Again</button>
+        </div>
+        <div id="shareButtons">
+            <button class="shareButton facebook" onclick="shareGame('facebook')">
+                Share on Facebook
+            </button>
+            <button class="shareButton twitter" onclick="shareGame('twitter')">
+                Share on Twitter
+            </button>
+            <button class="shareButton whatsapp" onclick="shareGame('whatsapp')">
+                Share on WhatsApp
+            </button>
         </div>
     </div>
     <script src="game.js"></script>

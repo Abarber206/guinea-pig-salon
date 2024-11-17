@@ -949,3 +949,33 @@ canvas.addEventListener('click', () => {
         audioContext.resume();
     }
 });
+
+// Social sharing functionality
+function shareGame(platform) {
+    const gameUrl = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Check out this awesome Balloon Popping Defense Game! My high score is ' + score + '. Can you beat it?');
+    
+    let shareUrl = '';
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${gameUrl}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${gameUrl}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://api.whatsapp.com/send?text=${text}%20${gameUrl}`;
+            break;
+    }
+    
+    // Open share dialog in a new window
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+
+// Add share buttons
+const shareButtons = document.getElementById('shareButtons');
+shareButtons.innerHTML = `
+    <button class="share-button" onclick="shareGame('facebook')">Share on Facebook</button>
+    <button class="share-button" onclick="shareGame('twitter')">Share on Twitter</button>
+    <button class="share-button" onclick="shareGame('whatsapp')">Share on WhatsApp</button>
+`;
