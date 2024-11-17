@@ -11,7 +11,7 @@
     <meta property="og:url" content="https://abarber206.github.io/balloon-defense">
     <meta name="twitter:card" content="summary_large_image">
     
-    <title>Circle Deflection Game</title>
+    <title>Balloon Defense Game</title>
     <style>
         body {
             margin: 0;
@@ -22,6 +22,7 @@
             min-height: 100vh;
             background: #f0f0f0;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         #gameContainer {
             position: relative;
@@ -57,75 +58,50 @@
         }
         #leaderboard h3 {
             margin: 0 0 10px 0;
-            font-size: 20px;
-            color: #333;
         }
-        #leaderboard ol {
-            padding-left: 20px;
+        #leaderboard ul {
+            list-style: none;
+            padding: 0;
             margin: 0;
         }
         #leaderboard li {
             margin-bottom: 5px;
-            font-size: 16px;
-            color: #555;
         }
         #themeSelector {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-family: Arial, sans-serif;
             z-index: 100;
-        }
-        #themeSelector select {
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            width: 150px;
-            margin-top: 5px;
-        }
-        #themeSelector label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        #score {
-            margin-top: 0;
-        }
-        #round {
-            margin-top: 10px;
-        }
-        #nextRound {
-            margin-top: 10px;
-            color: #4CAF50;
-            display: none;
         }
         #gameOver {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
             display: none;
         }
-        button {
+        #gameOver button {
+            margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
-            background: #4CAF50;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            margin-top: 10px;
+        }
+        #countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            z-index: 1000;
+            display: none;
         }
         #shareButtons {
             position: fixed;
@@ -145,7 +121,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-family: Arial, sans-serif;
             font-size: 14px;
             color: white;
             display: flex;
@@ -163,28 +138,23 @@
         <div id="gameInfo">
             <div>Score: <span id="scoreValue">0</span></div>
             <div>Round: <span id="roundValue">1</span></div>
-            <div id="nextRound" style="display: none;">
-                Next round in: <span id="countdownValue">3</span>
-            </div>
         </div>
         <div id="leaderboard">
-            <h3>Leaderboard</h3>
-            <ol id="leaderboardList">
-                <!-- High scores will be dynamically inserted here -->
-            </ol>
+            <h3>Top Scores</h3>
+            <ul id="leaderboardList"></ul>
         </div>
-        <div id="themeSelector">
-            <label for="theme">Background Theme:</label>
-            <select id="theme">
-                <option value="classic">Classic White</option>
-                <option value="night">Night Sky</option>
-                <option value="gradient">Sunset Gradient</option>
-                <option value="grid">Grid Pattern</option>
-                <option value="dots">Polka Dots</option>
-                <option value="space">Space</option>
-            </select>
+        <select id="theme">
+            <option value="classic">Classic White</option>
+            <option value="night">Night Sky</option>
+            <option value="sunset">Sunset</option>
+            <option value="grid">Grid Pattern</option>
+            <option value="polkadots">Polka Dots</option>
+            <option value="space">Space</option>
+        </select>
+        <div id="countdown">
+            <span id="countdownValue">3</span>
         </div>
-        <div id="gameOver" style="display: none;">
+        <div id="gameOver">
             <h2>Game Over!</h2>
             <p>Final Score: <span id="finalScore">0</span></p>
             <p>Rounds Completed: <span id="finalRound">0</span></p>
@@ -194,15 +164,9 @@
             <button onclick="location.reload()">Play Again</button>
         </div>
         <div id="shareButtons">
-            <button class="shareButton facebook" onclick="shareGame('facebook')">
-                Share on Facebook
-            </button>
-            <button class="shareButton twitter" onclick="shareGame('twitter')">
-                Share on Twitter
-            </button>
-            <button class="shareButton whatsapp" onclick="shareGame('whatsapp')">
-                Share on WhatsApp
-            </button>
+            <button class="shareButton facebook" onclick="shareGame('facebook')">Share on Facebook</button>
+            <button class="shareButton twitter" onclick="shareGame('twitter')">Share on Twitter</button>
+            <button class="shareButton whatsapp" onclick="shareGame('whatsapp')">Share on WhatsApp</button>
         </div>
     </div>
     <script src="game.js"></script>
