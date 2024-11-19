@@ -334,20 +334,8 @@ function addHairAtPosition(x, y) {
 }
 
 function handleGrooming(e) {
-    let x, y;
-    
-    // If we're receiving offsetX/Y (from touch events), use those directly
-    if (e.offsetX !== undefined && e.offsetY !== undefined) {
-        x = e.offsetX;
-        y = e.offsetY;
-    } else {
-        // For mouse events, calculate position
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        x = (e.clientX - rect.left) * scaleX;
-        y = (e.clientY - rect.top) * scaleY;
-    }
+    const x = e.offsetX;
+    const y = e.offsetY;
 
     let actionTaken = false;
     const currentHairArray = isFrontView ? faceHair : bodyHair;
@@ -677,12 +665,14 @@ function gameLoop() {
     drawGuineaPig();
     drawUI();
     
-    // Decrease happiness if there's too little or too much hair
-    const currentHairArray = isFrontView ? faceHair : bodyHair;
-    const uncut = currentHairArray.filter(hair => !hair.cut).length;
-    if (uncut < HAIR_DENSITY * 0.3 || uncut > HAIR_DENSITY * 1.5) {
-        //guineaPig.happiness = Math.max(0, guineaPig.happiness - 0.1);
+    // Draw accessories in front view
+    if (isFrontView) {
+        if (accessories.bow.active) drawBow();
+        if (accessories.glasses.active) drawGlasses();
+        if (accessories.bowtie.active) drawBowtie();
     }
+    // Hat is visible in both views
+    if (accessories.hat.active) drawHat();
     
     requestAnimationFrame(gameLoop);
 }
@@ -839,6 +829,10 @@ canvas.addEventListener('mouseup', () => {
 
 // Add touch event handling and responsive canvas
 function initializeCanvas() {
+    // Set canvas dimensions
+    canvas.width = 800;
+    canvas.height = 600;
+
     function resizeCanvas() {
         const container = document.getElementById('gameContainer');
         const maxWidth = Math.min(800, container.clientWidth - 20); // 20px for margins
@@ -854,31 +848,28 @@ function initializeCanvas() {
     // Resize on window change
     window.addEventListener('resize', resizeCanvas);
 
-    // Convert touch position to canvas coordinates
-    function getTouchPos(canvas, touch) {
+    // Get accurate mouse/touch position
+    function getCanvasPosition(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        
-        // Calculate position in canvas coordinates
-        const x = (touch.clientX - rect.left) * scaleX;
-        const y = (touch.clientY - rect.top) * scaleY;
-        
         return {
-            offsetX: x,
-            offsetY: y
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
         };
     }
 
-    // Mouse event handlers with proper coordinate calculation
+    // Mouse event handlers
     canvas.addEventListener('mousedown', (e) => {
         isMouseDown = true;
-        handleGrooming(e);
+        const pos = getCanvasPosition(e.clientX, e.clientY);
+        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
     });
 
     canvas.addEventListener('mousemove', (e) => {
         if (isMouseDown) {
-            handleGrooming(e);
+            const pos = getCanvasPosition(e.clientX, e.clientY);
+            handleGrooming({ offsetX: pos.x, offsetY: pos.y });
         }
     });
 
@@ -894,15 +885,15 @@ function initializeCanvas() {
     canvas.addEventListener('touchstart', function(e) {
         e.preventDefault();
         const touch = e.touches[0];
-        const pos = getTouchPos(canvas, touch);
-        handleGrooming(pos);
+        const pos = getCanvasPosition(touch.clientX, touch.clientY);
+        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
     });
 
     canvas.addEventListener('touchmove', function(e) {
         e.preventDefault();
         const touch = e.touches[0];
-        const pos = getTouchPos(canvas, touch);
-        handleGrooming(pos);
+        const pos = getCanvasPosition(touch.clientX, touch.clientY);
+        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
     });
 }
 
