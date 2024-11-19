@@ -943,20 +943,27 @@ function changeTheme(themeName) {
 
 function createThemeBox() {
     const themeBox = document.createElement('div');
-    themeBox.style.position = 'fixed';  // Changed to fixed
+    themeBox.style.position = 'fixed';
     themeBox.style.bottom = '10px';
-    themeBox.style.left = '0';  // Added left positioning
-    themeBox.style.width = '100%';
+    themeBox.style.left = '50%';
+    themeBox.style.transform = 'translateX(-50%)';
+    themeBox.style.width = 'auto';
     themeBox.style.textAlign = 'center';
-    themeBox.style.padding = '10px';
+    themeBox.style.padding = '5px';
     themeBox.style.backgroundColor = '#f0f0f0';
-    themeBox.style.zIndex = '1000';  // Added z-index
+    themeBox.style.zIndex = '1000';
+    themeBox.style.borderRadius = '5px';
+    themeBox.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
     
     Object.keys(themes).forEach(themeName => {
         const button = document.createElement('button');
         button.innerText = themeName;
-        button.style.margin = '0 5px';  // Added margin between buttons
-        button.style.padding = '5px 10px';  // Added padding
+        button.style.margin = '0 5px';
+        button.style.padding = '5px 10px';
+        button.style.border = '1px solid #ccc';
+        button.style.borderRadius = '3px';
+        button.style.backgroundColor = '#fff';
+        button.style.cursor = 'pointer';
         button.onclick = () => changeTheme(themeName);
         themeBox.appendChild(button);
     });
@@ -1099,26 +1106,32 @@ document.getElementById('viewToggle').addEventListener('click', () => {
     }
 });
 
-// Add touch event handling and responsive canvas
 function initializeCanvas() {
-    // Set canvas dimensions
+    canvas = document.getElementById('gameCanvas');
+    ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match container
     canvas.width = 800;
     canvas.height = 600;
-
-    function resizeCanvas() {
-        const container = document.getElementById('gameContainer');
-        const maxWidth = Math.min(800, container.clientWidth - 20); // 20px for margins
-        const ratio = canvas.height / canvas.width;
-        
-        canvas.style.width = maxWidth + 'px';
-        canvas.style.height = (maxWidth * ratio) + 'px';
+    
+    // Center the guinea pig
+    guineaPig.x = canvas.width / 2;
+    guineaPig.y = canvas.height / 2;
+    
+    // Set canvas background color
+    canvas.style.backgroundColor = themes[currentTheme];
+    canvas.style.display = 'block';
+    canvas.style.margin = 'auto';
+    
+    // Make sure container fits canvas exactly
+    const container = document.querySelector('.canvas-container');
+    if (container) {
+        container.style.width = '800px';
+        container.style.height = '600px';
+        container.style.margin = 'auto';
+        container.style.position = 'relative';
+        container.style.backgroundColor = themes[currentTheme];
     }
-
-    // Initial resize
-    resizeCanvas();
-
-    // Resize on window change
-    window.addEventListener('resize', resizeCanvas);
 
     // Get accurate mouse/touch position
     function getCanvasPosition(clientX, clientY) {
@@ -1130,12 +1143,6 @@ function initializeCanvas() {
             y: (clientY - rect.top) * scaleY
         };
     }
-
-    // Remove any existing event listeners
-    const oldCanvas = canvas.cloneNode(true);
-    canvas.parentNode.replaceChild(oldCanvas, canvas);
-    canvas = oldCanvas;
-    ctx = canvas.getContext('2d');
 
     // Mouse event handlers
     canvas.addEventListener('mousedown', (e) => {
