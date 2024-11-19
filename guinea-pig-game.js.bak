@@ -1,0 +1,8 @@
+// Backup of original file
+const guineaPigNames = [
+    'Peanut', 'Cookie', 'Nibbles', 'Ginger', 'Oreo',
+    'Marshmallow', 'Pepper', 'Maple', 'Cocoa', 'Biscuit',
+    'Waffle', 'Mochi', 'Pudding', 'Pickles', 'Nutmeg',
+    'Cinnamon', 'Popcorn', 'Cheerio', 'Noodle', 'Bean',
+    'Snuggles', 'Bubbles', 'Waffles', 'Squeaks', 'Whiskers'
+];
