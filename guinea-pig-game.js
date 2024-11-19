@@ -121,7 +121,7 @@ function adjustColorForSpotOld(baseColor, isDark) {
     }).join('');
 }
 
-// Function to check if a point is near a spot
+// Helper function to check if a point is near a spot
 function getNearbySpot(x, y) {
     const checkSpots = spots.filter(spot => {
         const spotX = isFrontView ? spot.frontX : spot.sideX;
@@ -130,6 +130,111 @@ function getNearbySpot(x, y) {
         return distance <= spot.radius + 5; // Add 5px tolerance
     });
     return checkSpots[0]; // Return the first matching spot or undefined
+}
+
+// Helper function to check if a point is within ear regions
+function isInEarRegion(x, y) {
+    if (isFrontView) {
+        // Front view ear regions (two circles on either side)
+        const leftEarCenter = { x: canvas.width/2 - 80, y: canvas.height/2 - 40 };
+        const rightEarCenter = { x: canvas.width/2 + 80, y: canvas.height/2 - 40 };
+        const earRadius = 40;
+
+        return (Math.pow(x - leftEarCenter.x, 2) + Math.pow(y - leftEarCenter.y, 2) <= Math.pow(earRadius, 2)) ||
+               (Math.pow(x - rightEarCenter.x, 2) + Math.pow(y - rightEarCenter.y, 2) <= Math.pow(earRadius, 2));
+    } else {
+        // Side view ear region (oval shape)
+        const earCenter = { x: canvas.width/2 + 60, y: canvas.height/2 - 40 };
+        const a = 40; // horizontal radius
+        const b = 50; // vertical radius
+        
+        return Math.pow(x - earCenter.x, 2)/(a*a) + Math.pow(y - earCenter.y, 2)/(b*b) <= 1;
+    }
+}
+
+// Helper function to adjust color for ears
+function adjustColorForEars(baseColor) {
+    const variation = Math.random() < 0.5 ? 0.85 : 1.15; // Randomly darker or lighter
+    
+    // Convert hex to RGB
+    const r = parseInt(baseColor.slice(1,3), 16);
+    const g = parseInt(baseColor.slice(3,5), 16);
+    const b = parseInt(baseColor.slice(5,7), 16);
+    
+    // Adjust each component
+    const newR = Math.min(255, Math.max(0, Math.round(r * variation)));
+    const newG = Math.min(255, Math.max(0, Math.round(g * variation)));
+    const newB = Math.min(255, Math.max(0, Math.round(b * variation)));
+    
+    // Convert back to hex
+    return '#' + [newR, newG, newB].map(x => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+}
+
+// Helper function to check if a point is on the guinea pig
+function isOnGuineaPig(x, y) {
+    const dx = (x - guineaPig.x);
+    const dy = (y - guineaPig.y);
+
+    if (isFrontView) {
+        // For front view, use circular body and oval head
+        const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+        
+        // Body (circle)
+        if (distanceFromCenter <= guineaPig.height / 2.5) {
+            return true;
+        }
+        
+        // Head (oval)
+        const headCenter = { x: guineaPig.x, y: guineaPig.y - guineaPig.height / 4 };
+        const headDx = (x - headCenter.x);
+        const headDy = (y - headCenter.y);
+        const normalizedHeadX = headDx / (guineaPig.width / 3);
+        const normalizedHeadY = headDy / (guineaPig.height / 4);
+        if ((normalizedHeadX * normalizedHeadX + normalizedHeadY * normalizedHeadY) <= 1) {
+            return true;
+        }
+    } else {
+        // For side view, use oval body shape
+        const normalizedX = dx / (guineaPig.width / 2);
+        const normalizedY = dy / (guineaPig.height / 2.2);
+        if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Helper function to check if a point is on the guinea pig's body (not head)
+function isOnGuineaPigBody(x, y) {
+    const dx = (x - guineaPig.x);
+    const dy = (y - guineaPig.y);
+
+    if (isFrontView) {
+        // For front view, use circular body only
+        const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+        
+        // Body (circle)
+        if (distanceFromCenter <= guineaPig.height / 2.5 && 
+            y > guineaPig.y - guineaPig.height / 4) { // Exclude head area
+            return true;
+        }
+    } else {
+        // For side view, use oval body shape, excluding head area
+        const normalizedX = dx / (guineaPig.width / 2);
+        const normalizedY = dy / (guineaPig.height / 2.2);
+        
+        // Check if point is in body oval and not in head area (front 25% of body)
+        if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1 && 
+            x < guineaPig.x + guineaPig.width / 4) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 // Initialize random spots
@@ -192,6 +297,55 @@ function drawSpots() {
     });
 }
 
+function addHairAtPosition(x, y) {
+    const dx = (x - guineaPig.x);
+    const dy = (y - guineaPig.y);
+    const spot = getNearbySpot(x, y);
+    
+    if (isFrontView) {
+        // Very short hair for body, slightly longer for head
+        const hairLength = isOnGuineaPigBody(x, y) ? 
+            Math.random() * 3 + 2 : // 2-5 pixels for body
+            Math.random() * 5 + 3;  // 3-8 pixels for head
+        
+        const angle = Math.atan2(dy, dx);
+        const curliness = Math.random() * 0.3; // Less curly
+        
+        if (isOnGuineaPigBody(x, y) || isOnGuineaPig(x, y)) {
+            faceHair.push({
+                x: x,
+                y: y,
+                angle: angle,
+                length: hairLength,
+                cut: false,
+                curliness: curliness,
+                color: spot ? adjustColorForSpot(currentColor, spot) : 
+                      (isInEarRegion(x, y) ? adjustColorForEars(currentColor) : varyColor(currentColor))
+            });
+            return true;
+        }
+    } else {
+        // Side view - very short hair for body
+        if (isOnGuineaPigBody(x, y)) {
+            const hairLength = Math.random() * 3 + 2; // 2-5 pixels
+            const angle = Math.atan2(dy, dx);
+            const curliness = Math.random() * 0.3; // Less curly
+            
+            bodyHair.push({
+                x: x,
+                y: y,
+                angle: angle,
+                length: hairLength,
+                cut: false,
+                curliness: curliness,
+                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
+            });
+            return true;
+        }
+    }
+    return false;
+}
+
 // Sound effects
 const sounds = {
     cut: document.getElementById('cutSound'),
@@ -236,7 +390,7 @@ const guineaPig = {
 };
 
 // Hair properties
-const HAIR_LENGTH = 25;
+const HAIR_LENGTH = 5; // Reduced from default value
 const HAIR_DENSITY = 50; // Reduced since we now have two collections
 
 // Initialize hair on the guinea pig
@@ -288,50 +442,10 @@ function addFaceHair() {
     });
 }
 
-function addHairAtPosition(x, y) {
-    const dx = (x - guineaPig.x);
-    const dy = (y - guineaPig.y);
-    
-    if (isFrontView) {
-        const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-        if (distanceFromCenter <= guineaPig.height / 1.5) {
-            const angle = Math.atan2(dy, dx);
-            const spot = getNearbySpot(x, y);
-            
-            faceHair.push({
-                x: x,
-                y: y,
-                angle: angle,
-                length: HAIR_LENGTH,
-                cut: false,
-                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
-            });
-            return true;
-        }
-    } else {
-        const normalizedX = dx / (guineaPig.width / 2);
-        const normalizedY = dy / (guineaPig.height / 2);
-        if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1.44) {
-            const spot = getNearbySpot(x, y);
-            
-            bodyHair.push({
-                x: x,
-                y: y,
-                angle: Math.atan2(dy, dx),
-                length: HAIR_LENGTH,
-                cut: false,
-                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
-            });
-            return true;
-        }
-    }
-    return false;
-}
-
 function handleGrooming(e) {
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * canvasScale.x;
-    const y = (e.clientY - rect.top) * canvasScale.y;
+    const x = (e.clientX - rect.left) / zoomLevel;
+    const y = (e.clientY - rect.top) / zoomLevel;
 
     let actionTaken = false;
     const currentHairArray = isFrontView ? faceHair : bodyHair;
@@ -796,31 +910,28 @@ canvas.addEventListener('mouseup', () => {
     isMouseDown = false;
 });
 
-// Initialize zoom controls
-const zoomSlider = document.getElementById('zoomSlider');
-const zoomValue = document.getElementById('zoomValue');
-
+// Function to update zoom level and canvas scale
 function updateZoom(value) {
     zoomLevel = value / 100;
-    zoomValue.textContent = value + '%';
-    
-    // Update canvas scale
-    const container = document.getElementById('gameContainer');
-    const maxWidth = Math.min(800, container.clientWidth - 20);
-    const ratio = canvas.height / canvas.width;
-    
-    const newWidth = maxWidth * zoomLevel;
-    const newHeight = newWidth * ratio;
-    
-    canvas.style.width = newWidth + 'px';
-    canvas.style.height = newHeight + 'px';
-    
-    // Update canvas scale factors
-    canvasScale.x = canvas.width / newWidth;
-    canvasScale.y = canvas.height / newHeight;
+    canvasScale.x = zoomLevel;
+    canvasScale.y = zoomLevel;
+
+    // Update canvas style
+    canvas.style.transform = `scale(${zoomLevel})`;
+    canvas.style.transformOrigin = 'top left';
+
+    // Update zoom value display
+    const zoomValueDisplay = document.getElementById('zoomValue');
+    if (zoomValueDisplay) {
+        zoomValueDisplay.textContent = `${value}%`;
+    }
+
+    // Redraw the canvas
+    drawUI();
 }
 
 // Add zoom slider event listener
+const zoomSlider = document.getElementById('zoomSlider');
 zoomSlider.addEventListener('input', (e) => {
     updateZoom(e.target.value);
 });
@@ -829,24 +940,18 @@ zoomSlider.addEventListener('input', (e) => {
 function getCanvasPosition(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     return {
-        x: (clientX - rect.left) * canvasScale.x,
-        y: (clientY - rect.top) * canvasScale.y
+        x: (clientX - rect.left) / zoomLevel,
+        y: (clientY - rect.top) / zoomLevel
     };
 }
 
 // Initialize canvas with proper zoom
 function initializeCanvas() {
-    // Set canvas dimensions
-    canvas.width = 800;
-    canvas.height = 600;
-
-    // Initial zoom setup
-    updateZoom(100);
-
-    // Resize on window change
-    window.addEventListener('resize', () => {
+    // Set initial zoom level
+    const zoomSlider = document.getElementById('zoomSlider');
+    if (zoomSlider) {
         updateZoom(zoomSlider.value);
-    });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
