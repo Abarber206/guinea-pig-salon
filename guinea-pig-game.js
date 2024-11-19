@@ -3,7 +3,8 @@ const guineaPigNames = [
     'Marshmallow', 'Pepper', 'Maple', 'Cocoa', 'Biscuit',
     'Waffle', 'Mochi', 'Pudding', 'Pickles', 'Nutmeg',
     'Cinnamon', 'Popcorn', 'Cheerio', 'Noodle', 'Bean',
-    'Snuggles', 'Bubbles', 'Waffles', 'Squeaks', 'Whiskers'
+    'Snuggles', 'Bubbles', 'Waffles', 'Squeaks', 'Whiskers',
+    'Taylor'
 ];
 
 // List of possible guinea pig base colors
@@ -361,18 +362,43 @@ function addHairAtPosition(x, y) {
         if (distanceFromCenter <= hairPlacementRadius) {
             const angle = Math.atan2(dy, dx);
             
-            // Check if we're in an ear region
-            const isInLeftEar = leftInnerEarDist <= earSize * 1.2;
-            const isInRightEar = rightInnerEarDist <= earSize * 1.2;
+            // Check if we're in an ear region - more precise detection
+            const leftEarX = guineaPig.x - 50;
+            const rightEarX = guineaPig.x + 50;
+            const earY = guineaPig.y - 50;
+            const isInLeftEar = Math.sqrt(Math.pow(x - leftEarX, 2) + Math.pow(y - earY, 2)) <= earSize * 1.2;
+            const isInRightEar = Math.sqrt(Math.pow(x - rightEarX, 2) + Math.pow(y - earY, 2)) <= earSize * 1.2;
             
-            // If in ear region, use darker color
             let hairColor;
-            if (isInLeftEar || isInRightEar) {
-                const darkerColor = darkenColor(currentColor);
-                hairColor = darkenColor(darkerColor); // Double darken for ear hair
+            const spot = getNearbySpot(x, y);
+            
+            // Special hair colors for Taylor
+            if (guineaPigName === 'Taylor') {
+                let baseColor;
+                const variation = Math.random();
+                if (variation < 0.33) {
+                    baseColor = '#FFB6C1';  // Slightly darker pink
+                } else if (variation < 0.66) {
+                    baseColor = '#FFD1DC';  // Same as body
+                } else {
+                    baseColor = '#FFE4E8';  // Lighter pink
+                }
+                
+                if (isInLeftEar || isInRightEar) {
+                    hairColor = darkenColor(baseColor);
+                } else if (spot) {
+                    hairColor = adjustColorForSpot(baseColor, spot);
+                } else {
+                    hairColor = baseColor;
+                }
             } else {
-                const spot = getNearbySpot(x, y);
-                hairColor = spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor);
+                if (isInLeftEar || isInRightEar) {
+                    hairColor = darkenColor(darkenColor(currentColor)); // Double darken for ear hair
+                } else if (spot) {
+                    hairColor = adjustColorForSpot(currentColor, spot);
+                } else {
+                    hairColor = varyColor(currentColor);
+                }
             }
             
             faceHair.push({
@@ -386,13 +412,48 @@ function addHairAtPosition(x, y) {
             return true;
         }
     } else {
-        // Keep existing side view logic
+        // Side view logic
         const normalizedX = dx / (guineaPig.width / 2);
         const normalizedY = dy / (guineaPig.height / 1.8);
         const isOnBody = (normalizedX * normalizedX + normalizedY * normalizedY) <= 1;
         
         if (isOnBody) {
             const spot = getNearbySpot(x, y);
+            let hairColor;
+            
+            // Check if we're in the tail region (back right area)
+            const tailX = x - guineaPig.x;
+            const tailY = y - guineaPig.y;
+            const isTailRegion = tailX > guineaPig.width/2.5 && Math.abs(tailY) < guineaPig.height/4;
+            
+            // Special hair colors for Taylor
+            if (guineaPigName === 'Taylor') {
+                let baseColor;
+                const variation = Math.random();
+                if (variation < 0.33) {
+                    baseColor = '#FFB6C1';  // Slightly darker pink
+                } else if (variation < 0.66) {
+                    baseColor = '#FFD1DC';  // Same as body
+                } else {
+                    baseColor = '#FFE4E8';  // Lighter pink
+                }
+                
+                if (isTailRegion) {
+                    hairColor = darkenColor(baseColor);
+                } else if (spot) {
+                    hairColor = adjustColorForSpot(baseColor, spot);
+                } else {
+                    hairColor = baseColor;
+                }
+            } else {
+                if (isTailRegion) {
+                    hairColor = darkenColor(currentColor);
+                } else if (spot) {
+                    hairColor = adjustColorForSpot(currentColor, spot);
+                } else {
+                    hairColor = varyColor(currentColor);
+                }
+            }
             
             bodyHair.push({
                 x: x,
@@ -400,7 +461,7 @@ function addHairAtPosition(x, y) {
                 angle: Math.atan2(dy, dx),
                 length: 15,
                 cut: false,
-                color: spot ? adjustColorForSpot(bodyColor, spot) : varyColor(bodyColor)
+                color: hairColor
             });
             return true;
         }
@@ -851,12 +912,56 @@ function drawHitbox() {
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw background with current theme
+    ctx.fillStyle = themes[currentTheme];
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     drawGuineaPig();
     drawAccessories();
     drawHitbox();  // Add hitbox visualization
     drawUI();
     
     requestAnimationFrame(gameLoop);
+}
+
+// Theme management
+const themes = {
+    "White": "#FFFFFF",
+    "Light Green": "#90EE90",
+    "Light Orange": "#FFE4C4",
+    "Dark Gray": "#4A4A4A",
+    "Light Pink": "#FFE4E1"
+};
+let currentTheme = "White";
+
+function changeTheme(themeName) {
+    if (themes[themeName]) {
+        currentTheme = themeName;
+        drawGame(); // Redraw the game with new background
+    }
+}
+
+function createThemeBox() {
+    const themeBox = document.createElement('div');
+    themeBox.style.position = 'fixed';  // Changed to fixed
+    themeBox.style.bottom = '10px';
+    themeBox.style.left = '0';  // Added left positioning
+    themeBox.style.width = '100%';
+    themeBox.style.textAlign = 'center';
+    themeBox.style.padding = '10px';
+    themeBox.style.backgroundColor = '#f0f0f0';
+    themeBox.style.zIndex = '1000';  // Added z-index
+    
+    Object.keys(themes).forEach(themeName => {
+        const button = document.createElement('button');
+        button.innerText = themeName;
+        button.style.margin = '0 5px';  // Added margin between buttons
+        button.style.padding = '5px 10px';  // Added padding
+        button.onclick = () => changeTheme(themeName);
+        themeBox.appendChild(button);
+    });
+
+    document.body.appendChild(themeBox);
 }
 
 // Color picker event listener
@@ -1073,16 +1178,23 @@ function initializeCanvas() {
 // Initialize the game
 function initializeGame() {
     generateGuineaPigName();
-    bodyColor = generateRandomGuineaPigColor();
+    // Special color for Taylor
+    if (guineaPigName === 'Taylor') {
+        bodyColor = '#FFD1DC';  // Soft pink
+        currentColor = '#FFD1DC';  // Start with body color for hair
+    } else {
+        bodyColor = generateRandomGuineaPigColor();
+        currentColor = bodyColor; // Start with body color for hair
+    }
     guineaPig.pinkColor = generateRandomPink();
     initializeWhiskers();
     document.getElementById('bodyColorPicker').value = bodyColor;
+    document.getElementById('colorPicker').value = currentColor; // Set color picker to match body color
     initializeSpots();
     initializeHair();
     initializeCanvas();
     initializeToolButtons();
     currentTool = 'brush';
-    currentColor = bodyColor; // Start with hair color matching body
     currentAccessoryColor = '#FF69B4';
     isFrontView = false;
     accessories = {
@@ -1132,6 +1244,10 @@ function toggleAccessory(accessory) {
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw background with current theme
+    ctx.fillStyle = themes[currentTheme];
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     drawGuineaPig();
     drawAccessories();
     drawHitbox();  // Add hitbox visualization
@@ -1153,5 +1269,40 @@ function initializeWhiskers() {
     }
 }
 
-initializeGame();
-gameLoop();
+function isValidHairPosition(x, y) {
+    if (isFrontView) {
+        // Check if point is in inner ear regions
+        const leftInnerEarDist = Math.sqrt(
+            Math.pow(x - (guineaPig.x - 50), 2) + 
+            Math.pow(y - (guineaPig.y - 50), 2)
+        );
+        const rightInnerEarDist = Math.sqrt(
+            Math.pow(x - (guineaPig.x + 50), 2) + 
+            Math.pow(y - (guineaPig.y - 50), 2)
+        );
+        
+        // Don't place hair if inside inner ear regions
+        const earSize = 25;
+        if (leftInnerEarDist <= earSize/1.8 || rightInnerEarDist <= earSize/1.8) {
+            return false;
+        }
+
+        // Use larger area for hair placement while keeping face size the same
+        const distanceFromCenter = Math.sqrt(Math.pow(x - guineaPig.x, 2) + Math.pow(y - guineaPig.y, 2));
+        const hairPlacementRadius = guineaPig.width / 2.2;
+        
+        return distanceFromCenter <= hairPlacementRadius;
+    } else {
+        // Keep existing side view logic
+        const normalizedX = (x - guineaPig.x) / (guineaPig.width / 2);
+        const normalizedY = (y - guineaPig.y) / (guineaPig.height / 1.8);
+        const isOnBody = (normalizedX * normalizedX + normalizedY * normalizedY) <= 1;
+        return isOnBody;
+    }
+}
+
+window.onload = function() {
+    createThemeBox();
+    initializeGame();
+    gameLoop();
+};
