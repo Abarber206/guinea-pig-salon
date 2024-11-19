@@ -569,6 +569,8 @@ function drawGlasses() {
 }
 
 function drawHat() {
+    if (!isFrontView) return;
+
     ctx.fillStyle = currentAccessoryColor;
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 2;
@@ -576,41 +578,40 @@ function drawHat() {
     // Draw complete hat with proper perspective
     // Hat brim
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 85, 60, 20, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 75, 60, 20, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 85, 60, 20, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 75, 60, 20, 0, 0, Math.PI * 2);
     ctx.stroke();
     
     // Hat body (cylinder) - fill only
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 130);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 130);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 85);
+    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 75);
+    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 75);
     ctx.fill();
     
     // Draw only the side lines of the cylinder
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 130);
+    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 75);
+    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 120);
     ctx.stroke();
     
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x + 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 130);
+    ctx.moveTo(guineaPig.x + 35, guineaPig.y - 75);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 120);
     ctx.stroke();
     
     // Hat top
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 130, 35, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 120, 35, 12, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
-    // Add a decorative band
-    ctx.fillStyle = '#000';
+    // Add a decorative band - using the same color as the hat
     ctx.beginPath();
-    ctx.rect(guineaPig.x - 35, guineaPig.y - 100, 70, 10);
+    ctx.rect(guineaPig.x - 35, guineaPig.y - 90, 70, 10);
     ctx.fill();
 }
 
@@ -634,27 +635,29 @@ function drawBow() {
 }
 
 function drawBowtie() {
+    if (!isFrontView) return;
+    
     ctx.fillStyle = currentAccessoryColor;
     
     // Left triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 35);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 55);
+    ctx.moveTo(guineaPig.x, guineaPig.y + 55);
+    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 45);
+    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 65);
     ctx.closePath();
     ctx.fill();
     
     // Right triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 35);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 55);
+    ctx.moveTo(guineaPig.x, guineaPig.y + 55);
+    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 45);
+    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 65);
     ctx.closePath();
     ctx.fill();
     
     // Center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y + 45, 3, 0, Math.PI * 2);
+    ctx.arc(guineaPig.x, guineaPig.y + 55, 3, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -919,10 +922,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function toggleAccessory(accessory) {
-    if (!isFrontView && accessory !== 'hat') {
-        return; // Only hat is visible in side view
+    const view = isFrontView ? 'front' : 'side';
+    
+    // Check for incompatible accessories
+    if (accessory === 'hat' && accessories[view].bow) {
+        // If trying to equip hat while bow is on, remove bow first
+        accessories[view].bow = false;
+        document.getElementById('bow').classList.remove('selected');
+    } else if (accessory === 'bow' && accessories[view].hat) {
+        // If trying to equip bow while hat is on, remove hat first
+        accessories[view].hat = false;
+        document.getElementById('hat').classList.remove('selected');
     }
-    accessories[accessory].active = !accessories[accessory].active;
+    
+    // Toggle the requested accessory
+    accessories[view][accessory] = !accessories[view][accessory];
 }
 
 function gameLoop() {
@@ -933,12 +947,12 @@ function gameLoop() {
     
     // Draw accessories in front view
     if (isFrontView) {
-        if (accessories.bow.active) drawBow();
-        if (accessories.glasses.active) drawGlasses();
-        if (accessories.bowtie.active) drawBowtie();
+        if (accessories.front.bow) drawBow();
+        if (accessories.front.glasses) drawGlasses();
+        if (accessories.front.bowtie) drawBowtie();
     }
     // Hat is visible in both views
-    if (accessories.hat.active) drawHat();
+    if (accessories.front.hat || accessories.side.hat) drawHat();
     
     requestAnimationFrame(gameLoop);
 }
