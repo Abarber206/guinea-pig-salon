@@ -8,13 +8,12 @@ let faceHair = [];  // Hair for the face (visible in front view)
 let currentColor = '#8B4513'; // Default brown color
 let currentAccessoryColor = '#FF69B4';
 let bodyColor = '#8B4513';
-let accessories = {
-    bow: { active: false, x: 0, y: 0, scale: 1 },
-    hat: { active: false, x: 0, y: 0, scale: 1 },
-    glasses: { active: false, x: 0, y: 0, scale: 1 },
-    bowtie: { active: false, x: 0, y: 0, scale: 1 }
+let isMouseDown = false;
+let zoomLevel = 1;
+let canvasScale = {
+    x: 1,
+    y: 1
 };
-let spots = [];
 
 // List of possible guinea pig names
 const guineaPigNames = [
@@ -331,8 +330,8 @@ function addHairAtPosition(x, y) {
 
 function handleGrooming(e) {
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * canvasScale.x;
+    const y = (e.clientY - rect.top) * canvasScale.y;
 
     let actionTaken = false;
     const currentHairArray = isFrontView ? faceHair : bodyHair;
@@ -662,12 +661,14 @@ function gameLoop() {
     drawGuineaPig();
     drawUI();
     
-    // Decrease happiness if there's too little or too much hair
-    const currentHairArray = isFrontView ? faceHair : bodyHair;
-    const uncut = currentHairArray.filter(hair => !hair.cut).length;
-    if (uncut < HAIR_DENSITY * 0.3 || uncut > HAIR_DENSITY * 1.5) {
-        //guineaPig.happiness = Math.max(0, guineaPig.happiness - 0.1);
+    // Draw accessories in front view
+    if (isFrontView) {
+        if (accessories.bow.active) drawBow();
+        if (accessories.glasses.active) drawGlasses();
+        if (accessories.bowtie.active) drawBowtie();
     }
+    // Hat is visible in both views
+    if (accessories.hat.active) drawHat();
     
     requestAnimationFrame(gameLoop);
 }
@@ -782,7 +783,6 @@ function initializeAccessoryVisibility() {
 }
 
 // Mouse interaction
-let isMouseDown = false;
 canvas.addEventListener('mousedown', (e) => {
     isMouseDown = true;
     handleGrooming(e);
@@ -796,24 +796,57 @@ canvas.addEventListener('mouseup', () => {
     isMouseDown = false;
 });
 
-// Start the game
-function initializeGame() {
-    generateGuineaPigName();
-    bodyColor = generateRandomGuineaPigColor();
-    bodyHair = [];
-    faceHair = [];
-    initializeSpots();
-    currentTool = 'brush';
-    currentColor = bodyColor; // Start with hair color matching body
-    currentAccessoryColor = '#ff0000';
-    isFrontView = false;
-    accessories = {
-        bow: { active: false },
-        glasses: { active: false },
-        hat: { active: false },
-        bowtie: { active: false }
+// Initialize zoom controls
+const zoomSlider = document.getElementById('zoomSlider');
+const zoomValue = document.getElementById('zoomValue');
+
+function updateZoom(value) {
+    zoomLevel = value / 100;
+    zoomValue.textContent = value + '%';
+    
+    // Update canvas scale
+    const container = document.getElementById('gameContainer');
+    const maxWidth = Math.min(800, container.clientWidth - 20);
+    const ratio = canvas.height / canvas.width;
+    
+    const newWidth = maxWidth * zoomLevel;
+    const newHeight = newWidth * ratio;
+    
+    canvas.style.width = newWidth + 'px';
+    canvas.style.height = newHeight + 'px';
+    
+    // Update canvas scale factors
+    canvasScale.x = canvas.width / newWidth;
+    canvasScale.y = canvas.height / newHeight;
+}
+
+// Add zoom slider event listener
+zoomSlider.addEventListener('input', (e) => {
+    updateZoom(e.target.value);
+});
+
+// Update getCanvasPosition to account for zoom
+function getCanvasPosition(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (clientX - rect.left) * canvasScale.x,
+        y: (clientY - rect.top) * canvasScale.y
     };
-    initializeAccessoryVisibility();
+}
+
+// Initialize canvas with proper zoom
+function initializeCanvas() {
+    // Set canvas dimensions
+    canvas.width = 800;
+    canvas.height = 600;
+
+    // Initial zoom setup
+    updateZoom(100);
+
+    // Resize on window change
+    window.addEventListener('resize', () => {
+        updateZoom(zoomSlider.value);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -846,6 +879,27 @@ function gameLoop() {
     if (accessories.hat.active) drawHat();
     
     requestAnimationFrame(gameLoop);
+}
+
+// Start the game
+function initializeGame() {
+    generateGuineaPigName();
+    bodyColor = generateRandomGuineaPigColor();
+    bodyHair = [];
+    faceHair = [];
+    initializeSpots();
+    currentTool = 'brush';
+    currentColor = bodyColor; // Start with hair color matching body
+    currentAccessoryColor = '#ff0000';
+    isFrontView = false;
+    accessories = {
+        bow: { active: false },
+        glasses: { active: false },
+        hat: { active: false },
+        bowtie: { active: false }
+    };
+    initializeAccessoryVisibility();
+    initializeCanvas();
 }
 
 initializeGame();
