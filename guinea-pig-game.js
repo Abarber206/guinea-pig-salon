@@ -4,7 +4,7 @@ const guineaPigNames = [
     'Waffle', 'Mochi', 'Pudding', 'Pickles', 'Nutmeg',
     'Cinnamon', 'Popcorn', 'Cheerio', 'Noodle', 'Bean',
     'Snuggles', 'Bubbles', 'Waffles', 'Squeaks', 'Whiskers', 
-    'Taylor'.
+    'Taylor'
 ];
 
 // List of possible guinea pig base colors
