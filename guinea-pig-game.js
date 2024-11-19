@@ -1,6 +1,10 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Set canvas size
+canvas.width = 800;
+canvas.height = 600;
+
 // Game state
 let currentTool = 'scissors';
 let bodyHair = [];  // Hair for the body (visible in side view)
@@ -15,6 +19,7 @@ let accessories = {
     bowtie: { active: false, x: 0, y: 0, scale: 1 }
 };
 let spots = [];
+let isMouseDown = false;
 
 // List of possible guinea pig names
 const guineaPigNames = [
@@ -377,7 +382,7 @@ function handleGrooming(e) {
             if (colorChanged) playSoundWithCooldown('color');
             break;
 
-        case 'paintbrush':
+        case 'paint':
             let painted = false;
             currentHairArray.forEach(hair => {
                 const distance = Math.sqrt(
@@ -672,141 +677,80 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Color picker event listener
-document.getElementById('colorPicker').addEventListener('input', (e) => {
-    if (currentColor !== e.target.value) {
-        currentColor = e.target.value;
-        playSoundWithCooldown('color');
-    }
-});
-
-// Body color picker
-document.getElementById('bodyColorPicker').addEventListener('input', (e) => {
-    if (bodyColor !== e.target.value) {
-        bodyColor = e.target.value;
-        playSoundWithCooldown('color');
-    }
-});
-
-// Tool buttons
-const tools = ['scissors', 'brush', 'dye', 'paintbrush'];
-tools.forEach(tool => {
-    document.getElementById(tool).addEventListener('click', () => {
-        currentTool = tool;
-        tools.forEach(t => {
-            document.getElementById(t).classList.remove('selected');
-        });
-        document.getElementById(tool).classList.add('selected');
+// Initialize event listeners
+function initializeEventListeners() {
+    // Tool buttons
+    document.getElementById('scissors').addEventListener('click', () => currentTool = 'scissors');
+    document.getElementById('brush').addEventListener('click', () => currentTool = 'brush');
+    document.getElementById('dye').addEventListener('click', () => currentTool = 'dye');
+    document.getElementById('paint').addEventListener('click', () => currentTool = 'paint');
+    document.getElementById('viewToggle').addEventListener('click', () => {
+        isFrontView = !isFrontView;
     });
-});
 
-// Accessory event listeners
-const accessoryButtons = ['bow', 'hat', 'glasses', 'bowtie'];
-accessoryButtons.forEach(accessory => {
-    document.getElementById(accessory).addEventListener('click', () => {
-        toggleAccessory(accessory);
-        playSoundWithCooldown('accessory');
-        
-        // Toggle button selection
-        const button = document.getElementById(accessory);
-        if (accessories[accessory].active) {
-            accessoryButtons.forEach(a => document.getElementById(a).classList.remove('selected'));
-            button.classList.add('selected');
-        } else {
-            button.classList.remove('selected');
+    // Color picker
+    document.getElementById('colorPicker').addEventListener('input', (e) => {
+        currentColor = e.target.value;
+    });
+
+    // Canvas events
+    canvas.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleGrooming(e);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            handleGrooming(e);
         }
     });
-});
 
-// Accessory color picker
-document.getElementById('accessoryColorPicker').addEventListener('input', (e) => {
-    currentAccessoryColor = e.target.value;
-    playSoundWithCooldown('color');
-});
+    canvas.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
 
-// View toggle button
-document.getElementById('viewToggle').addEventListener('click', () => {
-    isFrontView = !isFrontView;
-    
-    // Show/hide accessory buttons based on view
-    const accessoryDiv = document.querySelector('.accessories');
-    if (isFrontView) {
-        accessoryDiv.style.display = 'flex';
-    } else {
-        accessoryDiv.style.display = 'none';
-        // Remove all accessories when switching to side view
-        Object.keys(accessories).forEach(acc => {
-            accessories[acc].active = false;
-            document.getElementById(acc).classList.remove('selected');
-        });
-    }
-});
-
-// Mouse interaction
-let isMouseDown = false;
-canvas.addEventListener('mousedown', (e) => {
-    isMouseDown = true;
-    handleGrooming(e);
-});
-canvas.addEventListener('mousemove', (e) => {
-    if (isMouseDown) {
-        handleGrooming(e);
-    }
-});
-canvas.addEventListener('mouseup', () => {
-    isMouseDown = false;
-});
+    canvas.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+    });
+}
 
 // Start the game
 function initializeGame() {
+    // Set initial canvas size
+    canvas.width = 800;
+    canvas.height = 600;
+    
     generateGuineaPigName();
     bodyColor = generateRandomGuineaPigColor();
+    document.getElementById('colorPicker').value = bodyColor;
+    
     bodyHair = [];
     faceHair = [];
     initializeSpots();
+    initializeHair();
+    
     currentTool = 'brush';
     currentColor = bodyColor; // Start with hair color matching body
-    currentAccessoryColor = '#ff0000';
+    currentAccessoryColor = '#FF69B4';
     isFrontView = false;
+    
     accessories = {
         bow: { active: false },
         glasses: { active: false },
         hat: { active: false },
         bowtie: { active: false }
     };
+
+    // Update guinea pig name display
+    const nameElement = document.getElementById('guineaPigName');
+    if (nameElement) {
+        nameElement.textContent = guineaPigName + "'s Salon Day!";
+    }
 }
 
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const bodyColorPicker = document.getElementById('bodyColorPicker');
-    if (bodyColorPicker) {
-        bodyColorPicker.value = bodyColor;
-    }
+    initializeEventListeners();
+    initializeGame();
+    gameLoop();
 });
-
-function toggleAccessory(accessory) {
-    if (!isFrontView && accessory !== 'hat') {
-        return; // Only hat is visible in side view
-    }
-    accessories[accessory].active = !accessories[accessory].active;
-}
-
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    drawGuineaPig();
-    drawUI();
-    
-    // Draw accessories in front view
-    if (isFrontView) {
-        if (accessories.bow.active) drawBow();
-        if (accessories.glasses.active) drawGlasses();
-        if (accessories.bowtie.active) drawBowtie();
-    }
-    // Hat is visible in both views
-    if (accessories.hat.active) drawHat();
-    
-    requestAnimationFrame(gameLoop);
-}
-
-initializeGame();
-gameLoop();
