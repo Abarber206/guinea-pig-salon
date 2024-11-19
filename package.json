@@ -1,0 +1,12 @@
+{
+  "name": "guinea-pig-salon",
+  "version": "1.0.0",
+  "description": "A fun guinea pig grooming game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

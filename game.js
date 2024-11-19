@@ -634,30 +634,40 @@ function drawCursor() {
     currentNeedleAngle += (targetAngle - currentNeedleAngle) * angleSpeed;
     
     // Draw needle
+    drawNeedle(mouseX, mouseY, currentNeedleAngle);
+}
+
+function drawNeedle(x, y, angle) {
     ctx.save();
-    ctx.translate(mouseX, mouseY);
-    ctx.rotate(currentNeedleAngle);
+    ctx.translate(x, y);
+    ctx.rotate(angle);
     
-    // Needle shape
+    // Increase needle size
+    const needleLength = 35;  // Increased from original size
+    const needleWidth = 4;    // Increased width for better visibility
+    
+    // Draw needle body (metallic gradient)
+    const gradient = ctx.createLinearGradient(-needleLength/2, 0, needleLength/2, 0);
+    gradient.addColorStop(0, '#A0A0A0');
+    gradient.addColorStop(0.5, '#E0E0E0');
+    gradient.addColorStop(1, '#A0A0A0');
+    
     ctx.beginPath();
-    ctx.moveTo(-5, 0);
-    ctx.lineTo(20, 0);
-    ctx.lineWidth = 2;
-    
-    // Metallic gradient
-    const gradient = ctx.createLinearGradient(-5, 0, 20, 0);
-    gradient.addColorStop(0, '#808080');
-    gradient.addColorStop(0.5, '#D0D0D0');
-    gradient.addColorStop(1, '#808080');
+    ctx.moveTo(-needleLength/2, 0);
+    ctx.lineTo(needleLength/2, 0);
+    ctx.lineWidth = needleWidth;
     ctx.strokeStyle = gradient;
-    
+    ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Needle eye (small circle at the base)
+    // Draw needle point (sharper and more defined)
     ctx.beginPath();
-    ctx.arc(-2, 0, 2, 0, Math.PI * 2);
-    ctx.fillStyle = '#606060';
-    ctx.fill();
+    ctx.moveTo(needleLength/2, 0);
+    ctx.lineTo(needleLength/2 + 10, 0);  // Extended point
+    ctx.lineWidth = needleWidth * 0.5;    // Thinner at the point
+    ctx.strokeStyle = '#808080';
+    ctx.lineCap = 'round';
+    ctx.stroke();
     
     ctx.restore();
 }

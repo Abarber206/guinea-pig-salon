@@ -1,62 +1,44 @@
-# Balloon Popping Defense Game
+# Guinea Pig Salon 
 
-An exciting browser-based game where players defend a central target by popping approaching balloons using a needle-like cursor. Test your reflexes and strategy as you progress through increasingly challenging rounds!
+A delightful web-based game where you can groom and style your very own virtual guinea pig! Each guinea pig is unique with random colors, spots, and a cute name.
 
-## 🎮 Play Now
+## Play Now! 
+Visit [Guinea Pig Salon](https://[your-github-username].github.io/guinea-pig-salon) to start grooming!
 
-Visit [https://[your-github-username].github.io/personal-website](https://[your-github-username].github.io/personal-website) to play the game!
+## Features 
+-  Customize your guinea pig's hair color and style
+-  Add cute accessories (bow, hat, glasses, bowtie)
+-  Switch between front and side views
+-  Interactive grooming tools:
+  -  Scissors to trim hair
+  -  Brush to add hair
+  -  Hair dye for full makeovers
+  -  Paint brush for detailed coloring
+-  Random guinea pig colors and unique spots
+-  Cute randomly generated names
 
-## 🎯 Game Features
+## How to Play 
+1. Use the brush to add hair to your guinea pig
+2. Style the hair using scissors and coloring tools
+3. Add accessories in front view
+4. Switch views to style both sides
+5. Create your perfect guinea pig look!
 
-- Intuitive needle cursor that tracks the nearest balloon
-- Progressive difficulty system
-- Multiple beautiful background themes
-- Real-time score tracking
-- Global leaderboard
-- Social sharing functionality
+## Technologies Used 
+- HTML5 Canvas
+- Vanilla JavaScript
+- CSS3
 
-## 🎨 Available Themes
+## Local Development 
+1. Clone the repository
+```bash
+git clone https://github.com/[your-github-username]/guinea-pig-salon.git
+```
+2. Open `guinea-pig-salon.html` in your browser
+3. Start grooming!
 
-- Classic White
-- Night Sky
-- Sunset Gradient
-- Grid Pattern
-- Polka Dots
-- Space
+## Share Your Creation! 
+Share your unique guinea pig salon creations with friends by sending them the link!
 
-## 🚀 How to Play
-
-1. Move your mouse to control the needle cursor
-2. The needle automatically targets the nearest balloon
-3. Click to pop balloons before they reach the central target
-4. Survive as many rounds as possible
-5. Share your high score with friends!
-
-## 💻 Local Development
-
-To run the game locally:
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/[your-github-username]/personal-website.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd personal-website
-   ```
-3. Start a local server (using Python for example):
-   ```bash
-   python -m http.server 8000
-   ```
-4. Open your browser and visit:
-   ```
-   http://localhost:8000
-   ```
-
-## 🤝 Contributing
-
-Feel free to open issues or submit pull requests to help improve the game!
-
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+## License 
+MIT License - Feel free to use and modify!
