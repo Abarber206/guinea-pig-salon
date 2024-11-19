@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Guinea Pig Salon</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             display: flex;
             flex-direction: column;
@@ -12,152 +18,118 @@
             background-color: #f0f8ff;
             font-family: Arial, sans-serif;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            position: relative;
-        }
-
-        #gameContainer {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
+            padding: 10px;
+            overflow-x: hidden;
         }
 
         #gameCanvas {
             border: 2px solid #333;
-            margin: 20px;
+            margin: 10px;
             cursor: pointer;
             max-width: 100%;
             height: auto;
         }
 
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .tools {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            align-items: center;
             flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .tool-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .tool-btn:hover {
-            background-color: #45a049;
-        }
-
-        .tool-btn.selected {
-            background-color: #2E7D32;
-            box-shadow: 0 0 5px rgba(0,0,0,0.3);
-        }
-
-        .color-picker {
-            display: flex;
-            align-items: center;
             gap: 10px;
-            margin-left: 20px;
-        }
-
-        #colorPicker {
-            width: 50px;
-            height: 50px;
-            padding: 0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .view-controls {
-            margin-top: 10px;
             margin-bottom: 20px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
         }
 
-        .view-btn {
-            padding: 12px 24px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: #7B68EE;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .view-btn:hover {
-            background-color: #6A5ACD;
-        }
-
-        .accessories {
-            position: fixed;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .accessories button {
-            width: 50px;
-            height: 50px;
+        button {
+            min-width: 50px;
+            min-height: 50px;
             font-size: 24px;
             border: 2px solid #ccc;
             border-radius: 8px;
             background: white;
             cursor: pointer;
             transition: all 0.3s;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .accessories button:hover {
+        button:hover, button:active {
             transform: scale(1.1);
             border-color: #ff69b4;
+            background-color: #fff5f9;
         }
 
-        .accessories button.selected {
-            background: #ff69b4;
-            color: white;
-            border-color: #ff1493;
+        button.selected {
+            background: #ffe6f2;
+            border-color: #ff69b4;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+            transform: scale(1.1);
         }
 
-        .body-color {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .body-color span {
-            color: #333;
-            font-size: 14px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-
-        #bodyColorPicker {
+        input[type="color"] {
             width: 50px;
             height: 50px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            padding: 0;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 8px;
+        }
+
+        .side-panel {
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .accessories {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .body-color {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .body-color span {
+            color: #333;
+            font-size: 14px;
+            text-align: center;
         }
 
         #gameTitle {
@@ -168,106 +140,69 @@
             color: #333;
         }
 
-        .zoom-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #7B68EE;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            margin: 10px auto;
-            width: fit-content;
-        }
-
-        .zoom-control label {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .zoom-control input[type="range"] {
-            width: 150px;
-            height: 8px;
-            -webkit-appearance: none;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-            outline: none;
-        }
-
-        .zoom-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .zoom-control input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .zoom-control span {
-            font-size: 14px;
-            font-weight: bold;
-            min-width: 50px;
-        }
-
+        /* Mobile Styles */
         @media (max-width: 768px) {
-            .accessories {
+            .side-panel {
                 position: static;
                 transform: none;
                 flex-direction: row;
+                width: 100%;
                 justify-content: center;
                 margin: 10px 0;
             }
 
-            .body-color {
-                position: static;
-                transform: none;
-                margin: 10px 0;
+            .tools {
+                padding: 10px;
+            }
+
+            button, input[type="color"] {
+                min-width: 40px;
+                min-height: 40px;
+                font-size: 20px;
+            }
+
+            #gameCanvas {
+                margin: 5px;
+            }
+
+            #gameTitle {
+                font-size: 20px;
+            }
+        }
+
+        /* Small screens */
+        @media (max-width: 480px) {
+            button, input[type="color"] {
+                min-width: 35px;
+                min-height: 35px;
+                font-size: 18px;
             }
         }
     </style>
 </head>
 <body>
-    <h1 id="gameTitle">Guinea Pig Salon 🐹</h1>
-    <div class="tools">
-        <button id="scissors" title="Cut Hair">✂️</button>
-        <button id="brush" title="Add Hair">🧹</button>
-        <button id="dye" title="Dye All Hair">🎨</button>
-        <button id="paintbrush" title="Paint Hair">🖌️</button>
-        <input type="color" id="colorPicker" value="#8B4513">
-    </div>
-    <div class="accessories">
-        <button id="bow" title="Add Bow">🎀</button>
-        <button id="hat" title="Add Hat">🎩</button>
-        <button id="glasses" title="Add Glasses">👓</button>
-        <button id="bowtie" title="Add Bowtie">🎊</button>
-        <input type="color" id="accessoryColorPicker" value="#FF69B4">
-    </div>
-    <div class="body-color">
-        <span>Body Color:</span>
-        <input type="color" id="bodyColorPicker" value="#8B4513">
-    </div>
-    <div class="view-toggle">
-        <button id="viewToggle" title="Switch View">🔄</button>
-    </div>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div class="zoom-control">
-            <label>Zoom: </label>
-            <input type="range" id="zoomSlider" min="50" max="150" value="100">
-            <span id="zoomValue">100%</span>
+        <h1 id="gameTitle">Guinea Pig Salon 🐹</h1>
+        <div class="tools">
+            <button id="scissors" title="Cut Hair">✂️</button>
+            <button id="brush" title="Add Hair">🧹</button>
+            <button id="dye" title="Dye All Hair">🎨</button>
+            <button id="paintbrush" title="Paint Hair">🖌️</button>
+            <input type="color" id="colorPicker" value="#8B4513">
+            <button id="viewToggle" title="Switch View">🔄</button>
         </div>
+        <div class="side-panel accessories">
+            <button id="bow" title="Add Bow">🎀</button>
+            <button id="hat" title="Add Hat">🎩</button>
+            <button id="glasses" title="Add Glasses">👓</button>
+            <button id="bowtie" title="Add Bowtie">🎊</button>
+            <input type="color" id="accessoryColorPicker" value="#FF69B4">
+        </div>
+        <div class="side-panel body-color">
+            <span>Body Color:</span>
+            <input type="color" id="bodyColorPicker" value="#8B4513">
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
     </div>
     <audio id="cutSound" src="https://assets.mixkit.co/active_storage/sfx/2893/2893-preview.mp3" preload="auto"></audio>
     <audio id="brushSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
