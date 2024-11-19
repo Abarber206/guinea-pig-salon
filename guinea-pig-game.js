@@ -334,9 +334,20 @@ function addHairAtPosition(x, y) {
 }
 
 function handleGrooming(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x, y;
+    
+    // If we're receiving offsetX/Y (from touch events), use those directly
+    if (e.offsetX !== undefined && e.offsetY !== undefined) {
+        x = e.offsetX;
+        y = e.offsetY;
+    } else {
+        // For mouse events, calculate position
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        x = (e.clientX - rect.left) * scaleX;
+        y = (e.clientY - rect.top) * scaleY;
+    }
 
     let actionTaken = false;
     const currentHairArray = isFrontView ? faceHair : bodyHair;
@@ -848,25 +859,50 @@ function initializeCanvas() {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
+        
+        // Calculate position in canvas coordinates
+        const x = (touch.clientX - rect.left) * scaleX;
+        const y = (touch.clientY - rect.top) * scaleY;
+        
         return {
-            x: (touch.clientX - rect.left) * scaleX,
-            y: (touch.clientY - rect.top) * scaleY
+            offsetX: x,
+            offsetY: y
         };
     }
+
+    // Mouse event handlers with proper coordinate calculation
+    canvas.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        handleGrooming(e);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (isMouseDown) {
+            handleGrooming(e);
+        }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+        isMouseDown = false;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+    });
 
     // Touch event handlers
     canvas.addEventListener('touchstart', function(e) {
         e.preventDefault();
         const touch = e.touches[0];
         const pos = getTouchPos(canvas, touch);
-        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
+        handleGrooming(pos);
     });
 
     canvas.addEventListener('touchmove', function(e) {
         e.preventDefault();
         const touch = e.touches[0];
         const pos = getTouchPos(canvas, touch);
-        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
+        handleGrooming(pos);
     });
 }
 
