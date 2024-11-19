@@ -262,30 +262,34 @@ function addBodyHair() {
     const x = guineaPig.x + Math.cos(angle) * radiusX;
     const y = guineaPig.y + Math.sin(angle) * radiusY;
     
+    const spot = getNearbySpot(x, y);
+    
     bodyHair.push({
         x: x,
         y: y,
         angle: angle,
         length: HAIR_LENGTH,
         cut: false,
-        color: varyColor(currentColor)
+        color: spot ? adjustColorForSpot(bodyColor, spot) : varyColor(bodyColor)
     });
 }
 
 function addFaceHair() {
     const angle = Math.random() * Math.PI * 2;
-    const radius = (guineaPig.height / 1.5) * Math.sqrt(Math.random()) * 0.8;
+    const radius = (guineaPig.height/1.5) * Math.sqrt(Math.random()) * 0.8;
     
     const x = guineaPig.x + Math.cos(angle) * radius;
     const y = guineaPig.y + Math.sin(angle) * radius;
     
+    const spot = getNearbySpot(x, y);
+    
     faceHair.push({
         x: x,
         y: y,
-        angle: angle, // Hair grows outward from center
+        angle: angle,
         length: HAIR_LENGTH,
         cut: false,
-        color: varyColor(currentColor)
+        color: spot ? adjustColorForSpot(bodyColor, spot) : varyColor(bodyColor)
     });
 }
 
