@@ -3,7 +3,7 @@
 A cute and interactive web-based game where you can style and groom your very own virtual guinea pig! Each time you play, you'll get a unique guinea pig with a random name and color.
 
 ## Play Now! 🎮
-Visit [Guinea Pig Salon](https://[your-github-username].github.io/guinea-pig-salon) to start playing!
+Visit [Guinea Pig Salon](https://Abarber206.github.io/guinea-pig-salon) to start playing!
 
 ## Features ✨
 - 🖌️ Multiple grooming tools:
