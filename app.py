@@ -1,11 +1,15 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, redirect, url_for
 import os
 
 app = Flask(__name__)
 
 @app.route('/')
-def serve_game():
+def root():
     return send_from_directory('.', 'guinea-pig-salon.html')
+
+@app.route('/guinea-pig-salon')
+def guinea_pig_salon():
+    return redirect(url_for('root'))
 
 @app.route('/<path:path>')
 def serve_files(path):

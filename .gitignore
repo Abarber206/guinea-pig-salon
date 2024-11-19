@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+
+# Backup files
+*.backup
+
+# Server files
+app.py
+wsgi.py
+server.js
+requirements.txt

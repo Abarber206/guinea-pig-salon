@@ -4,155 +4,176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guinea Pig Salon</title>
-    <meta name="description" content="A delightful web-based game where you can groom and style your very own virtual guinea pig!">
-    <meta property="og:title" content="Guinea Pig Salon">
-    <meta property="og:description" content="Style and groom your own unique virtual guinea pig!">
-    <meta property="og:type" content="website">
     <style>
         body {
-            margin: 0;
-            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #fff5f5;
-            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
         }
-        
-        #gameTitle {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 32px;
-            color: #ff69b4;
+        #gameCanvas {
+            border: 2px solid #333;
+            margin: 20px;
+            cursor: pointer;
         }
-
-        .game-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        canvas {
-            border: 2px solid #ffd1dc;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
         .tools {
             display: flex;
             gap: 10px;
-            margin-bottom: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        button {
-            font-size: 24px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            background-color: #ffd1dc;
-            color: #333;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #ffb6c1;
-            transform: scale(1.05);
-        }
-
-        button.selected {
-            background-color: #ff69b4;
-            color: white;
-        }
-
-        .color-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             align-items: center;
-            justify-content: center;
         }
-
+        .tool-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tool-btn:hover {
+            background-color: #45a049;
+        }
+        .tool-btn.selected {
+            background-color: #2E7D32;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
         #colorPicker {
             width: 50px;
             height: 50px;
             padding: 0;
-            border: 2px solid #ffd1dc;
-            border-radius: 25px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
         }
-
-        .view-toggle {
+        .tool-label {
             font-size: 16px;
-            padding: 10px 20px;
-            background-color: #ff69b4;
-            color: white;
+            color: #333;
         }
-
+        .view-controls {
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .view-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #7B68EE;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .view-btn:hover {
+            background-color: #6A5ACD;
+        }
         .accessories {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            margin-bottom: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
         }
-
-        .share-button {
-            background-color: #ff69b4;
-            color: white;
-            margin-top: 15px;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #666;
-        }
-
-        #guineaPigName {
+        
+        .accessories button {
+            width: 50px;
+            height: 50px;
             font-size: 24px;
-            color: #ff69b4;
-            margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .accessories button:hover {
+            transform: scale(1.1);
+            border-color: #ff69b4;
+        }
+        
+        .accessories button.selected {
+            background: #ffe6f2;
+            border-color: #ff69b4;
+        }
+        
+        #accessoryColorPicker {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .body-color {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .body-color span {
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            font-size: 14px;
+        }
+        
+        #bodyColorPicker {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #gameTitle {
             text-align: center;
+            font-family: 'Arial', sans-serif;
+            margin: 10px 0;
+            font-size: 24px;
+            color: #333;
         }
     </style>
 </head>
 <body>
     <h1 id="gameTitle">Guinea Pig Salon 🐹</h1>
-    <div id="guineaPigName"></div>
-    <div class="game-container">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <div class="tools">
-            <button id="scissors" title="Cut Hair">✂️ Scissors</button>
-            <button id="brush" title="Add Hair">🧹 Brush</button>
-            <button id="dye" title="Color Hair">🎨 Hair Dye</button>
-            <button id="paint" title="Paint Hair">🖌️ Paint</button>
-            <input type="color" id="colorPicker" value="#8B4513" title="Choose Color">
-            <button id="viewToggle" class="view-toggle">👁️ Toggle View</button>
-        </div>
-        <div class="accessories">
-            <button id="bowToggle" onclick="toggleAccessory('bow')">🎀 Bow</button>
-            <button id="hatToggle" onclick="toggleAccessory('hat')">🎩 Hat</button>
-            <button id="glassesToggle" onclick="toggleAccessory('glasses')">👓 Glasses</button>
-            <button id="bowtieToggle" onclick="toggleAccessory('bowtie')">🎊 Bowtie</button>
-        </div>
-        <button class="share-button" onclick="shareGame()">📱 Share Your Guinea Pig!</button>
+    <div class="tools">
+        <button id="scissors" title="Cut Hair">✂️</button>
+        <button id="brush" title="Add Hair">🧹</button>
+        <button id="dye" title="Dye All Hair">🎨</button>
+        <button id="paintbrush" title="Paint Hair">🖌️</button>
+        <input type="color" id="colorPicker" value="#8B4513">
     </div>
-    <footer>
-        <p>Made with ❤️ for guinea pig lovers everywhere</p>
-    </footer>
-
-    <!-- Audio elements -->
-    <audio id="cutSound" src="sounds/cut.mp3" preload="auto"></audio>
-    <audio id="brushSound" src="sounds/brush.mp3" preload="auto"></audio>
-    <audio id="dyeSound" src="sounds/dye.mp3" preload="auto"></audio>
-    <audio id="paintSound" src="sounds/paint.mp3" preload="auto"></audio>
-
+    <div class="accessories">
+        <button id="bow" title="Add Bow">🎀</button>
+        <button id="hat" title="Add Hat">🎩</button>
+        <button id="glasses" title="Add Glasses">👓</button>
+        <button id="bowtie" title="Add Bowtie">🎊</button>
+        <input type="color" id="accessoryColorPicker" value="#FF69B4">
+    </div>
+    <div class="body-color">
+        <span>Body Color:</span>
+        <input type="color" id="bodyColorPicker" value="#8B4513">
+    </div>
+    <div class="view-toggle">
+        <button id="viewToggle" title="Switch View">🔄</button>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <audio id="cutSound" src="https://assets.mixkit.co/active_storage/sfx/2893/2893-preview.mp3" preload="auto"></audio>
+    <audio id="brushSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
+    <audio id="accessorySound" src="https://assets.mixkit.co/active_storage/sfx/2894/2894-preview.mp3" preload="auto"></audio>
+    <audio id="colorSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
     <script src="guinea-pig-game.js"></script>
 </body>
 </html>
