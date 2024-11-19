@@ -11,11 +11,14 @@
             align-items: center;
             background-color: #f0f8ff;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
         }
         #gameCanvas {
             border: 2px solid #333;
             margin: 20px;
             cursor: pointer;
+            background-color: white;
         }
         .tools {
             display: flex;
@@ -23,7 +26,7 @@
             margin-bottom: 20px;
             align-items: center;
         }
-        .tool-btn {
+        button {
             padding: 10px 20px;
             font-size: 16px;
             border: none;
@@ -33,10 +36,10 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        .tool-btn:hover {
+        button:hover {
             background-color: #45a049;
         }
-        .tool-btn.selected {
+        button.selected {
             background-color: #2E7D32;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
@@ -46,7 +49,7 @@
             gap: 10px;
             margin-left: 20px;
         }
-        #colorPicker {
+        input[type="color"] {
             width: 50px;
             height: 50px;
             padding: 0;
@@ -63,14 +66,7 @@
             margin-bottom: 20px;
         }
         .view-btn {
-            padding: 12px 24px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
             background-color: #7B68EE;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
         }
         .view-btn:hover {
             background-color: #6A5ACD;
@@ -83,97 +79,60 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        
         .accessories button {
             width: 50px;
             height: 50px;
             font-size: 24px;
+            padding: 5px;
+            background-color: white;
+            color: #333;
             border: 2px solid #ccc;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
         }
-        
         .accessories button:hover {
             transform: scale(1.1);
             border-color: #ff69b4;
         }
-        
-        .accessories button.selected {
-            background: #ffe6f2;
-            border-color: #ff69b4;
-        }
-        
-        #accessoryColorPicker {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .body-color {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .body-color span {
-            color: white;
-            text-shadow: 1px 1px 2px black;
-            font-size: 14px;
-        }
-        
-        #bodyColorPicker {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
         #gameTitle {
-            text-align: center;
-            font-family: 'Arial', sans-serif;
-            margin: 10px 0;
-            font-size: 24px;
-            color: #333;
+            color: #ff69b4;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <h1 id="gameTitle">Guinea Pig Salon 🐹</h1>
     <div class="tools">
-        <button id="scissors" title="Cut Hair">✂️</button>
-        <button id="brush" title="Add Hair">🧹</button>
-        <button id="dye" title="Dye All Hair">🎨</button>
-        <button id="paintbrush" title="Paint Hair">🖌️</button>
-        <input type="color" id="colorPicker" value="#8B4513">
+        <button id="scissors" class="tool-btn" title="Cut Hair">✂️</button>
+        <button id="brush" class="tool-btn" title="Add Hair">🧹</button>
+        <button id="hairDye" class="tool-btn" title="Hair Dye">🎨</button>
+        <button id="paintBrush" class="tool-btn" title="Paint Brush">🖌️</button>
+        <div class="color-picker">
+            <span class="tool-label">Color:</span>
+            <input type="color" id="colorPicker" value="#8B4513">
+        </div>
     </div>
-    <div class="accessories">
-        <button id="bow" title="Add Bow">🎀</button>
-        <button id="hat" title="Add Hat">🎩</button>
-        <button id="glasses" title="Add Glasses">👓</button>
-        <button id="bowtie" title="Add Bowtie">🎊</button>
-        <input type="color" id="accessoryColorPicker" value="#FF69B4">
-    </div>
-    <div class="body-color">
-        <span>Body Color:</span>
-        <input type="color" id="bodyColorPicker" value="#8B4513">
-    </div>
-    <div class="view-toggle">
-        <button id="viewToggle" title="Switch View">🔄</button>
+    <div class="view-controls">
+        <button id="viewToggle" class="view-btn">Switch View</button>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="accessories">
+        <button id="bowToggle" title="Toggle Bow">🎀</button>
+        <button id="hatToggle" title="Toggle Hat">🎩</button>
+        <button id="glassesToggle" title="Toggle Glasses">👓</button>
+        <button id="bowtieToggle" title="Toggle Bowtie">🎊</button>
+    </div>
+    
+    <!-- Audio elements -->
     <audio id="cutSound" src="https://assets.mixkit.co/active_storage/sfx/2893/2893-preview.mp3" preload="auto"></audio>
     <audio id="brushSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
-    <audio id="accessorySound" src="https://assets.mixkit.co/active_storage/sfx/2894/2894-preview.mp3" preload="auto"></audio>
     <audio id="colorSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
+    <audio id="accessorySound" src="https://assets.mixkit.co/active_storage/sfx/2894/2894-preview.mp3" preload="auto"></audio>
+
     <script src="guinea-pig-game.js"></script>
 </body>
 </html>
