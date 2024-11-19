@@ -305,12 +305,11 @@ function addHairAtPosition(x, y) {
     const dy = (y - guineaPig.y);
     
     if (isFrontView) {
-        // Make the front view hit area more oval-shaped
-        const normalizedX = dx / (guineaPig.width / 2.2);  // Slightly wider
-        const normalizedY = dy / (guineaPig.height / 1.8);  // Slightly taller
-        const isOnBody = (normalizedX * normalizedX + normalizedY * normalizedY) <= 1;
+        // Use larger area for hair placement while keeping face size the same
+        const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+        const hairPlacementRadius = guineaPig.width / 2.2;  // Larger area for hair placement
         
-        if (isOnBody) {
+        if (distanceFromCenter <= hairPlacementRadius) {
             const angle = Math.atan2(dy, dx);
             const spot = getNearbySpot(x, y);
             
@@ -325,9 +324,9 @@ function addHairAtPosition(x, y) {
             return true;
         }
     } else {
-        // Make the side view hit area more oval-shaped
+        // Keep existing side view logic
         const normalizedX = dx / (guineaPig.width / 2);
-        const normalizedY = dy / (guineaPig.height / 1.8);  // Slightly taller
+        const normalizedY = dy / (guineaPig.height / 1.8);
         const isOnBody = (normalizedX * normalizedX + normalizedY * normalizedY) <= 1;
         
         if (isOnBody) {
@@ -598,41 +597,40 @@ function drawHat() {
     // Draw complete hat with proper perspective
     // Hat brim
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 85, 60, 20, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 75, 60, 20, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 85, 60, 20, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 75, 60, 20, 0, 0, Math.PI * 2);
     ctx.stroke();
     
     // Hat body (cylinder) - fill only
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 130);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 130);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 85);
+    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 75);
+    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 75);
     ctx.fill();
     
     // Draw only the side lines of the cylinder
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 130);
+    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 75);
+    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 120);
     ctx.stroke();
     
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x + 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 130);
+    ctx.moveTo(guineaPig.x + 35, guineaPig.y - 75);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 120);
     ctx.stroke();
     
     // Hat top
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 130, 35, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 120, 35, 12, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
-    // Add a decorative band
-    ctx.fillStyle = '#000';
+    // Add a decorative band - using the same color as the hat
     ctx.beginPath();
-    ctx.rect(guineaPig.x - 35, guineaPig.y - 100, 70, 10);
+    ctx.rect(guineaPig.x - 35, guineaPig.y - 90, 70, 10);
     ctx.fill();
 }
 
@@ -643,17 +641,17 @@ function drawBow() {
     
     // Left loop
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x - 15, guineaPig.y - 70, 10, 15, Math.PI/4, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x - 15, guineaPig.y - 55, 10, 15, Math.PI/4, 0, Math.PI * 2);
     ctx.fill();
     
     // Right loop
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x + 15, guineaPig.y - 70, 10, 15, -Math.PI/4, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x + 15, guineaPig.y - 55, 10, 15, -Math.PI/4, 0, Math.PI * 2);
     ctx.fill();
     
     // Center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y - 70, 5, 0, Math.PI * 2);
+    ctx.arc(guineaPig.x, guineaPig.y - 55, 5, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -664,23 +662,23 @@ function drawBowtie() {
     
     // Left triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 35);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 55);
+    ctx.moveTo(guineaPig.x, guineaPig.y + 55);  
+    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 45);  
+    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 65);  
     ctx.closePath();
     ctx.fill();
     
     // Right triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 35);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 55);
+    ctx.moveTo(guineaPig.x, guineaPig.y + 55);  
+    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 45);  
+    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 65);  
     ctx.closePath();
     ctx.fill();
     
     // Center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y + 45, 3, 0, Math.PI * 2);
+    ctx.arc(guineaPig.x, guineaPig.y + 55, 3, 0, Math.PI * 2);  
     ctx.fill();
 }
 
@@ -696,11 +694,17 @@ function drawAccessories() {
     }
 }
 
+function drawHitbox() {
+    // Function remains for future debugging but doesn't draw anything
+    return;
+}
+
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     drawGuineaPig();
     drawAccessories();
+    drawHitbox();  // Add hitbox visualization
     drawUI();
     
     requestAnimationFrame(gameLoop);
@@ -957,8 +961,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function toggleAccessory(accessory) {
-    // Toggle the accessory state for the current view
     const view = isFrontView ? 'front' : 'side';
+    
+    // Check for incompatible accessories
+    if (accessory === 'hat' && accessories[view].bow) {
+        // If trying to equip hat while bow is on, remove bow first
+        accessories[view].bow = false;
+        document.getElementById('bow').classList.remove('selected');
+    } else if (accessory === 'bow' && accessories[view].hat) {
+        // If trying to equip bow while hat is on, remove hat first
+        accessories[view].hat = false;
+        document.getElementById('hat').classList.remove('selected');
+    }
+    
+    // Toggle the requested accessory
     accessories[view][accessory] = !accessories[view][accessory];
 }
 
@@ -967,6 +983,7 @@ function gameLoop() {
     
     drawGuineaPig();
     drawAccessories();
+    drawHitbox();  // Add hitbox visualization
     drawUI();
     
     requestAnimationFrame(gameLoop);
