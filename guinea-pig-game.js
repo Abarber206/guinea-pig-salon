@@ -4,7 +4,7 @@ const guineaPigNames = [
     'Waffle', 'Mochi', 'Pudding', 'Pickles', 'Nutmeg',
     'Cinnamon', 'Popcorn', 'Cheerio', 'Noodle', 'Bean',
     'Snuggles', 'Bubbles', 'Waffles', 'Squeaks', 'Whiskers', 
-    'Taylor'
+    'Taylor''Lauren', 'Austin', 'Gibby', 'Gubs'
 ];
 
 // List of possible guinea pig base colors
@@ -18,7 +18,52 @@ const guineaPigColors = [
     // Reds and Oranges
     '#CD5C5C', '#B8860B', '#DAA520', '#CD853F', '#D2691E'
 ];
+// Theme management
+const themes = {
+    "White": "#FFFFFF",
+    "Light Green": "#90EE90",
+    "Light Orange": "#FFE4C4",
+    "Dark Gray": "#4A4A4A",
+    "Light Pink": "#FFE4E1"
+};
+let currentTheme = "White";
 
+function changeTheme(themeName) {
+    if (themes[themeName]) {
+        currentTheme = themeName;
+        drawGame(); // Redraw the game with new background
+    }
+}
+
+function createThemeBox() {
+    const themeBox = document.createElement('div');
+    themeBox.style.position = 'fixed';
+    themeBox.style.bottom = '10px';
+    themeBox.style.left = '50%';
+    themeBox.style.transform = 'translateX(-50%)';
+    themeBox.style.width = 'auto';
+    themeBox.style.textAlign = 'center';
+    themeBox.style.padding = '5px';
+    themeBox.style.backgroundColor = '#f0f0f0';
+    themeBox.style.zIndex = '1000';
+    themeBox.style.borderRadius = '5px';
+    themeBox.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    
+    Object.keys(themes).forEach(themeName => {
+        const button = document.createElement('button');
+        button.innerText = themeName;
+        button.style.margin = '0 5px';
+        button.style.padding = '5px 10px';
+        button.style.border = '1px solid #ccc';
+        button.style.borderRadius = '3px';
+        button.style.backgroundColor = '#fff';
+        button.style.cursor = 'pointer';
+        button.onclick = () => changeTheme(themeName);
+        themeBox.appendChild(button);
+    });
+
+    document.body.appendChild(themeBox);
+}
 let guineaPigName = '';
 
 function generateGuineaPigName() {
@@ -1133,14 +1178,23 @@ function toggleAccessory(accessory) {
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw background with current theme
+    ctx.fillStyle = themes[currentTheme];
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     drawGuineaPig();
     drawAccessories();
-    drawHitbox();  // Add hitbox visualization
+    drawHitbox();
     drawUI();
     
     requestAnimationFrame(gameLoop);
 }
 
+window.onload = function() {
+    createThemeBox();
+    initializeGame();
+    gameLoop();
+};
 function initializeWhiskers() {
     // Front view whiskers
     for (let i = 0; i < 3; i++) {
