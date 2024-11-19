@@ -757,13 +757,58 @@ canvas.addEventListener('mouseup', () => {
     isMouseDown = false;
 });
 
-// Start the game
+// Add touch event handling and responsive canvas
+function initializeCanvas() {
+    function resizeCanvas() {
+        const container = document.getElementById('gameContainer');
+        const maxWidth = Math.min(800, container.clientWidth - 20); // 20px for margins
+        const ratio = canvas.height / canvas.width;
+        
+        canvas.style.width = maxWidth + 'px';
+        canvas.style.height = (maxWidth * ratio) + 'px';
+    }
+
+    // Initial resize
+    resizeCanvas();
+
+    // Resize on window change
+    window.addEventListener('resize', resizeCanvas);
+
+    // Convert touch position to canvas coordinates
+    function getTouchPos(canvas, touch) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (touch.clientX - rect.left) * scaleX,
+            y: (touch.clientY - rect.top) * scaleY
+        };
+    }
+
+    // Touch event handlers
+    canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const pos = getTouchPos(canvas, touch);
+        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
+    });
+
+    canvas.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const pos = getTouchPos(canvas, touch);
+        handleGrooming({ offsetX: pos.x, offsetY: pos.y });
+    });
+}
+
+// Initialize the game
 function initializeGame() {
     generateGuineaPigName();
     bodyColor = generateRandomGuineaPigColor();
-    bodyHair = [];
-    faceHair = [];
+    document.getElementById('bodyColorPicker').value = bodyColor;
     initializeSpots();
+    initializeHair();
+    initializeCanvas();
     currentTool = 'brush';
     currentColor = bodyColor; // Start with hair color matching body
     currentAccessoryColor = '#ff0000';
