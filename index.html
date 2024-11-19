@@ -3,71 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Social Media Meta Tags -->
-    <meta property="og:title" content="Guinea Pig Salon">
-    <meta property="og:description" content="Style and groom adorable virtual guinea pigs in this fun browser game!">
-    <meta property="og:image" content="https://abarber206.github.io/guinea-pig-salon/preview.png">
-    <meta property="og:url" content="https://abarber206.github.io/guinea-pig-salon/">
-    <meta name="twitter:card" content="summary_large_image">
-    
     <title>Guinea Pig Salon</title>
+    <meta name="description" content="A delightful web-based game where you can groom and style your very own virtual guinea pig!">
+    <meta property="og:title" content="Guinea Pig Salon">
+    <meta property="og:description" content="Style and groom your own unique virtual guinea pig!">
+    <meta property="og:type" content="website">
     <style>
         body {
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background: #fff5f5;
+            background-color: #fff5f5;
             font-family: 'Comic Sans MS', cursive, sans-serif;
         }
+        
+        #gameTitle {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 32px;
+            color: #ff69b4;
+        }
 
-        #gameContainer {
-            position: relative;
-            background: white;
+        .game-container {
+            background-color: white;
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         canvas {
             border: 2px solid #ffd1dc;
-            border-radius: 10px;
-            max-width: 100vw;
-            max-height: 80vh;
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
 
         .tools {
             display: flex;
             gap: 10px;
-            margin: 15px 0;
-            flex-wrap: wrap;
+            margin-bottom: 10px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         button {
+            font-size: 24px;
             padding: 10px 20px;
             border: none;
             border-radius: 20px;
-            background: #ffd1dc;
-            color: #333;
             cursor: pointer;
+            background-color: #ffd1dc;
+            color: #333;
             transition: all 0.3s ease;
-            font-family: inherit;
-            font-size: 1em;
         }
 
         button:hover {
-            background: #ffb6c1;
+            background-color: #ffb6c1;
             transform: scale(1.05);
         }
 
-        button.active {
-            background: #ff69b4;
+        button.selected {
+            background-color: #ff69b4;
             color: white;
+        }
+
+        .color-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            justify-content: center;
         }
 
         #colorPicker {
@@ -79,17 +85,27 @@
             cursor: pointer;
         }
 
-        .guinea-name {
-            font-size: 1.5em;
-            color: #ff69b4;
-            margin: 10px 0;
-            text-align: center;
+        .view-toggle {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #ff69b4;
+            color: white;
+        }
+
+        .accessories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .share-button {
-            background: #ff69b4;
+            background-color: #ff69b4;
             color: white;
             margin-top: 15px;
+            width: 100%;
+            max-width: 300px;
         }
 
         footer {
@@ -97,31 +113,45 @@
             text-align: center;
             color: #666;
         }
+
+        #guineaPigName {
+            font-size: 24px;
+            color: #ff69b4;
+            margin: 10px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <h1 class="guinea-name">Guinea Pig Salon</h1>
-        <canvas id="gameCanvas"></canvas>
+    <h1 id="gameTitle">Guinea Pig Salon 🐹</h1>
+    <div id="guineaPigName"></div>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div class="tools">
-            <button id="scissorsBtn">✂️ Scissors</button>
-            <button id="brushBtn">🧹 Hair Brush</button>
-            <button id="dyeBtn">🎨 Hair Dye</button>
-            <button id="paintBtn">🖌️ Paint Brush</button>
-            <input type="color" id="colorPicker" value="#ff69b4">
-            <button id="viewBtn">👁️ Toggle View</button>
+            <button id="scissors" title="Cut Hair">✂️ Scissors</button>
+            <button id="brush" title="Add Hair">🧹 Brush</button>
+            <button id="dye" title="Color Hair">🎨 Hair Dye</button>
+            <button id="paint" title="Paint Hair">🖌️ Paint</button>
+            <input type="color" id="colorPicker" value="#8B4513" title="Choose Color">
+            <button id="viewToggle" class="view-toggle">👁️ Toggle View</button>
         </div>
-        <div class="tools">
-            <button id="bowBtn">🎀 Bow</button>
-            <button id="hatBtn">🎩 Hat</button>
-            <button id="glassesBtn">👓 Glasses</button>
-            <button id="bowtieBtn">🎊 Bowtie</button>
+        <div class="accessories">
+            <button id="bowToggle" onclick="toggleAccessory('bow')">🎀 Bow</button>
+            <button id="hatToggle" onclick="toggleAccessory('hat')">🎩 Hat</button>
+            <button id="glassesToggle" onclick="toggleAccessory('glasses')">👓 Glasses</button>
+            <button id="bowtieToggle" onclick="toggleAccessory('bowtie')">🎊 Bowtie</button>
         </div>
         <button class="share-button" onclick="shareGame()">📱 Share Your Guinea Pig!</button>
     </div>
     <footer>
         <p>Made with ❤️ for guinea pig lovers everywhere</p>
     </footer>
+
+    <!-- Audio elements -->
+    <audio id="cutSound" src="sounds/cut.mp3" preload="auto"></audio>
+    <audio id="brushSound" src="sounds/brush.mp3" preload="auto"></audio>
+    <audio id="dyeSound" src="sounds/dye.mp3" preload="auto"></audio>
+    <audio id="paintSound" src="sounds/paint.mp3" preload="auto"></audio>
 
     <script src="guinea-pig-game.js"></script>
 </body>
