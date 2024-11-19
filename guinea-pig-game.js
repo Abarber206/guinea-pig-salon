@@ -1,22 +1,3 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-// Game state
-let currentTool = 'scissors';
-let bodyHair = [];  // Hair for the body (visible in side view)
-let faceHair = [];  // Hair for the face (visible in front view)
-let currentColor = '#8B4513'; // Default brown color
-let currentAccessoryColor = '#FF69B4';
-let bodyColor = '#8B4513';
-let accessories = {
-    bow: { active: false, x: 0, y: 0, scale: 1 },
-    hat: { active: false, x: 0, y: 0, scale: 1 },
-    glasses: { active: false, x: 0, y: 0, scale: 1 },
-    bowtie: { active: false, x: 0, y: 0, scale: 1 }
-};
-let spots = [];
-
-// List of possible guinea pig names
 const guineaPigNames = [
     'Peanut', 'Cookie', 'Nibbles', 'Ginger', 'Oreo',
     'Marshmallow', 'Pepper', 'Maple', 'Cocoa', 'Biscuit',
@@ -223,6 +204,24 @@ function playSoundWithCooldown(soundName) {
         lastSoundTime[soundName] = now;
     }
 }
+
+// Game state
+let currentTool = 'scissors';
+let bodyHair = [];  // Hair for the body (visible in side view)
+let faceHair = [];  // Hair for the face (visible in front view)
+let currentColor = '#8B4513'; // Default brown color
+let currentAccessoryColor = '#FF69B4';
+let bodyColor = '#8B4513';
+let isMouseDown = false;
+let canvas = document.getElementById('gameCanvas');
+let ctx = canvas.getContext('2d');
+let accessories = {
+    bow: { active: false, x: 0, y: 0, scale: 1 },
+    hat: { active: false, x: 0, y: 0, scale: 1 },
+    glasses: { active: false, x: 0, y: 0, scale: 1 },
+    bowtie: { active: false, x: 0, y: 0, scale: 1 }
+};
+let spots = [];
 
 // View state
 let isFrontView = false;
@@ -812,21 +811,6 @@ document.getElementById('viewToggle').addEventListener('click', () => {
     }
 });
 
-// Mouse interaction
-let isMouseDown = false;
-canvas.addEventListener('mousedown', (e) => {
-    isMouseDown = true;
-    handleGrooming(e);
-});
-canvas.addEventListener('mousemove', (e) => {
-    if (isMouseDown) {
-        handleGrooming(e);
-    }
-});
-canvas.addEventListener('mouseup', () => {
-    isMouseDown = false;
-});
-
 // Add touch event handling and responsive canvas
 function initializeCanvas() {
     // Set canvas dimensions
@@ -858,6 +842,12 @@ function initializeCanvas() {
             y: (clientY - rect.top) * scaleY
         };
     }
+
+    // Remove any existing event listeners
+    const oldCanvas = canvas.cloneNode(true);
+    canvas.parentNode.replaceChild(oldCanvas, canvas);
+    canvas = oldCanvas;
+    ctx = canvas.getContext('2d');
 
     // Mouse event handlers
     canvas.addEventListener('mousedown', (e) => {
