@@ -1,90 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guinea Pig Salon</title>
+    <title>Guinea Pig Salon Classic</title>
     <style>
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f8ff;
+            background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
         }
+        
         #gameCanvas {
             border: 2px solid #333;
-            margin: 20px;
-            cursor: pointer;
-        }
-        .tools {
-            display: flex;
-            gap: 10px;
+            border-radius: 10px;
+            background-color: white;
             margin-bottom: 20px;
-            align-items: center;
         }
-        button {
-            padding: 8px 16px;
-            margin: 5px;
-            font-size: 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        button:hover {
-            transform: scale(1.1);
-        }
-        button.active {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .color-section {
+        
+        .controls {
             display: flex;
-            align-items: center;
-            margin: 10px 0;
+            gap: 20px;
+            margin-bottom: 20px;
         }
-        .color-section label {
-            margin-right: 10px;
+        
+        .tool-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: white;
         }
-        #gameTitle {
-            font-size: 2em;
-            margin: 20px 0;
+        
+        .tool-button.active {
+            background-color: #e0e0e0;
+        }
+        
+        .color-picker {
+            margin: 0 10px;
         }
     </style>
 </head>
 <body>
-    <h1 id="gameTitle">Guinea Pig Salon 🐹</h1>
-    <div class="tools">
-        <button id="scissors" title="Cut Hair">✂️</button>
-        <button id="brush" title="Add Hair">🧹</button>
-        <button id="dye" title="Dye All Hair">🎨</button>
-        <button id="paintbrush" title="Paint Hair">🖌️</button>
-        <div class="color-section">
-            <label for="colorPicker">Hair Color:</label>
-            <input type="color" id="colorPicker" value="#8B4513">
-        </div>
-    </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div class="tools">
-        <button id="viewToggle">Switch View 🔄</button>
-        <button id="bow">🎀</button>
-        <button id="hat">🎩</button>
-        <button id="glasses">👓</button>
-        <button id="bowtie">🎀</button>
-        <div class="color-section">
-            <label for="accessoryColorPicker">Accessory Color:</label>
-            <input type="color" id="accessoryColorPicker" value="#FF69B4">
-        </div>
-        <div class="color-section">
-            <label for="bodyColorPicker">Body Color:</label>
-            <input type="color" id="bodyColorPicker" value="#8B4513">
-        </div>
+    
+    <div class="controls">
+        <button id="scissors" class="tool-button">✂️ Cut</button>
+        <button id="brush" class="tool-button">🖌️ Brush</button>
+        <button id="dye" class="tool-button">🎨 Dye</button>
+        <input type="color" id="colorPicker" class="color-picker" value="#8B4513">
+        <input type="color" id="accessoryColorPicker" class="color-picker" value="#FF69B4">
+        <input type="color" id="bodyColorPicker" class="color-picker" value="#8B4513">
+        <button id="viewToggle" class="tool-button">👁️ View</button>
     </div>
-    <audio id="cutSound" src="https://assets.mixkit.co/active_storage/sfx/2893/2893-preview.mp3" preload="auto"></audio>
-    <audio id="brushSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
-    <audio id="colorSound" src="https://assets.mixkit.co/active_storage/sfx/138/138-preview.mp3" preload="auto"></audio>
+    
+    <!-- Audio elements -->
+    <audio id="cutSound" src="sounds/cut.mp3" preload="auto"></audio>
+    <audio id="brushSound" src="sounds/brush.mp3" preload="auto"></audio>
+    <audio id="accessorySound" src="sounds/pop.mp3" preload="auto"></audio>
+    <audio id="colorSound" src="sounds/color.mp3" preload="auto"></audio>
+    
     <script src="game.js"></script>
 </body>
 </html>

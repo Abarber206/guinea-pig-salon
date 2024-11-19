@@ -15,6 +15,7 @@ let accessories = {
     bowtie: { active: false, x: 0, y: 0, scale: 1 }
 };
 let spots = [];
+let sparkles = [];
 
 // List of possible guinea pig names
 const guineaPigNames = [
@@ -39,6 +40,16 @@ const guineaPigColors = [
 
 let guineaPigName = '';
 
+// Guinea pig properties
+const guineaPig = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    width: 200,
+    height: 150,
+    eyeSize: 8,
+    noseSize: 6
+};
+
 function generateGuineaPigName() {
     guineaPigName = guineaPigNames[Math.floor(Math.random() * guineaPigNames.length)];
 }
@@ -49,148 +60,175 @@ function generateRandomGuineaPigColor() {
 
 // Helper function to add slight variation to colors
 function varyColor(baseColor) {
-    // Convert hex to RGB
-    const r = parseInt(baseColor.slice(1,3), 16);
-    const g = parseInt(baseColor.slice(3,5), 16);
-    const b = parseInt(baseColor.slice(5,7), 16);
+    const r = parseInt(baseColor.substr(1,2), 16);
+    const g = parseInt(baseColor.substr(3,2), 16);
+    const b = parseInt(baseColor.substr(5,2), 16);
     
-    // Add random variation (-15 to +15)
-    const variation = () => Math.floor(Math.random() * 31) - 15;
+    const variation = 30;
+    const newR = Math.max(0, Math.min(255, r + (Math.random() - 0.5) * variation));
+    const newG = Math.max(0, Math.min(255, g + (Math.random() - 0.5) * variation));
+    const newB = Math.max(0, Math.min(255, b + (Math.random() - 0.5) * variation));
     
-    // Apply variation and ensure values stay in valid range (0-255)
-    const newR = Math.min(255, Math.max(0, r + variation()));
-    const newG = Math.min(255, Math.max(0, g + variation()));
-    const newB = Math.min(255, Math.max(0, b + variation()));
-    
-    // Convert back to hex
-    return '#' + [newR, newG, newB].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
+    return '#' + Math.round(newR).toString(16).padStart(2, '0') +
+                 Math.round(newG).toString(16).padStart(2, '0') +
+                 Math.round(newB).toString(16).padStart(2, '0');
 }
 
 // Helper function to darken a color
 function darkenColor(color) {
-    const r = parseInt(color.slice(1,3), 16);
-    const g = parseInt(color.slice(3,5), 16);
-    const b = parseInt(color.slice(5,7), 16);
+    const r = parseInt(color.substr(1,2), 16);
+    const g = parseInt(color.substr(3,2), 16);
+    const b = parseInt(color.substr(5,2), 16);
     
-    // Darken by 20%
-    const darkenAmount = 0.8;
-    const newR = Math.floor(r * darkenAmount);
-    const newG = Math.floor(g * darkenAmount);
-    const newB = Math.floor(b * darkenAmount);
+    const factor = 0.8; // Darken by 20%
+    const newR = Math.max(0, Math.min(255, r * factor));
+    const newG = Math.max(0, Math.min(255, g * factor));
+    const newB = Math.max(0, Math.min(255, b * factor));
     
-    return '#' + [newR, newG, newB].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
+    return '#' + Math.round(newR).toString(16).padStart(2, '0') +
+                 Math.round(newG).toString(16).padStart(2, '0') +
+                 Math.round(newB).toString(16).padStart(2, '0');
 }
 
 // Helper function to adjust color based on spot variation
 function adjustColorForSpot(baseColor, spot) {
-    const r = parseInt(baseColor.slice(1,3), 16);
-    const g = parseInt(baseColor.slice(3,5), 16);
-    const b = parseInt(baseColor.slice(5,7), 16);
+    const r = parseInt(baseColor.substr(1,2), 16);
+    const g = parseInt(baseColor.substr(3,2), 16);
+    const b = parseInt(baseColor.substr(5,2), 16);
     
-    const newR = Math.min(255, Math.max(0, Math.floor(r * spot.variation)));
-    const newG = Math.min(255, Math.max(0, Math.floor(g * spot.variation)));
-    const newB = Math.min(255, Math.max(0, Math.floor(b * spot.variation)));
+    const factor = 0.7 + (spot.variation * 0.6); // Vary between 70% and 130% of original color
+    const newR = Math.max(0, Math.min(255, r * factor));
+    const newG = Math.max(0, Math.min(255, g * factor));
+    const newB = Math.max(0, Math.min(255, b * factor));
     
-    return '#' + [newR, newG, newB].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
-}
-
-// Helper function to lighten/darken color based on spot
-function adjustColorForSpotOld(baseColor, isDark) {
-    const r = parseInt(baseColor.slice(1,3), 16);
-    const g = parseInt(baseColor.slice(3,5), 16);
-    const b = parseInt(baseColor.slice(5,7), 16);
-    
-    // Adjust by 30% lighter or darker
-    const factor = isDark ? 0.7 : 1.3;
-    
-    const newR = Math.min(255, Math.max(0, Math.floor(r * factor)));
-    const newG = Math.min(255, Math.max(0, Math.floor(g * factor)));
-    const newB = Math.min(255, Math.max(0, Math.floor(b * factor)));
-    
-    return '#' + [newR, newG, newB].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    }).join('');
+    return '#' + Math.round(newR).toString(16).padStart(2, '0') +
+                 Math.round(newG).toString(16).padStart(2, '0') +
+                 Math.round(newB).toString(16).padStart(2, '0');
 }
 
 // Function to check if a point is near a spot
 function getNearbySpot(x, y) {
-    const checkSpots = spots.filter(spot => {
-        const spotX = isFrontView ? spot.frontX : spot.sideX;
-        const spotY = isFrontView ? spot.frontY : spot.sideY;
-        const distance = Math.sqrt(Math.pow(x - spotX, 2) + Math.pow(y - spotY, 2));
-        return distance <= spot.radius + 5; // Add 5px tolerance
+    return spots.find(spot => {
+        const dx = x - spot.x;
+        const dy = y - spot.y;
+        return Math.sqrt(dx * dx + dy * dy) <= spot.radius;
     });
-    return checkSpots[0]; // Return the first matching spot or undefined
 }
 
 // Initialize random spots
 function initializeSpots() {
     spots = [];
-    const numSpots = Math.floor(Math.random() * 10) + 5; // 5-15 spots
+    const numSpots = Math.floor(Math.random() * 5) + 3; // 3-7 spots
     
-    // Create spots for both views
     for (let i = 0; i < numSpots; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * 0.8; // Keep within body
-        
-        // Side view spots
-        const sideX = guineaPig.x + Math.cos(angle) * (guineaPig.width/2) * radius;
-        const sideY = guineaPig.y + Math.sin(angle) * (guineaPig.height/2) * radius;
-        
-        // Front view spots (circular distribution)
-        const frontRadius = guineaPig.height/1.5 * radius;
-        const frontX = guineaPig.x + Math.cos(angle) * frontRadius;
-        const frontY = guineaPig.y + Math.sin(angle) * frontRadius;
-        
-        // Random brightness (0 for dark, 1 for light)
-        const isDark = Math.random() < 0.5;
-        // Set a fixed variation for light spots
-        const variation = isDark ? 0.7 : 1.15;
+        const distance = Math.random() * guineaPig.width * 0.3;
+        const x = guineaPig.x + Math.cos(angle) * distance;
+        const y = guineaPig.y + Math.sin(angle) * distance;
         
         spots.push({
-            sideX, sideY,
-            frontX, frontY,
-            radius: Math.random() * 8 + 4, // 4-12px radius
-            isDark,
-            variation
+            x: x,
+            y: y,
+            radius: Math.random() * 20 + 10,
+            variation: Math.random()
         });
     }
 }
 
 function drawSpots() {
     spots.forEach(spot => {
-        const x = isFrontView ? spot.frontX : spot.sideX;
-        const y = isFrontView ? spot.frontY : spot.sideY;
-        
-        // Use the spot's fixed variation instead of random variation
-        const r = parseInt(bodyColor.slice(1,3), 16);
-        const g = parseInt(bodyColor.slice(3,5), 16);
-        const b = parseInt(bodyColor.slice(5,7), 16);
-        
-        const newR = Math.min(255, Math.max(0, Math.floor(r * spot.variation)));
-        const newG = Math.min(255, Math.max(0, Math.floor(g * spot.variation)));
-        const newB = Math.min(255, Math.max(0, Math.floor(b * spot.variation)));
-        
-        const spotColor = '#' + [newR, newG, newB].map(x => {
-            const hex = x.toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
-        }).join('');
-        
+        const spotColor = adjustColorForSpot(bodyColor, spot);
         ctx.fillStyle = spotColor;
-        ctx.beginPath();
-        ctx.arc(x, y, spot.radius, 0, Math.PI * 2);
-        ctx.fill();
+        
+        // Draw spot in front view
+        if (isFrontView) {
+            ctx.beginPath();
+            ctx.arc(spot.x, spot.y, spot.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Draw spot in side view (adjust x position)
+        else {
+            ctx.beginPath();
+            ctx.arc(
+                spot.x + (spot.x > guineaPig.x ? guineaPig.width/4 : -guineaPig.width/4),
+                spot.y,
+                spot.radius,
+                0, Math.PI * 2
+            );
+            ctx.fill();
+        }
     });
+}
+
+// Event Handlers
+function handleGrooming(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    addSparkle(mouseX, mouseY);
+    
+    if (currentTool === 'brush') {
+        playSound('brush');
+        if (isFrontView) {
+            addFaceHair(mouseX, mouseY);
+        } else {
+            addBodyHair(mouseX, mouseY);
+        }
+    } else if (currentTool === 'scissors') {
+        playSound('scissors');
+        if (isFrontView) {
+            trimFaceHair(mouseX, mouseY);
+        } else {
+            trimBodyHair(mouseX, mouseY);
+        }
+    } else if (currentTool === 'dye') {
+        playSound('dye');
+        if (isFrontView) {
+            dyeFaceHair(mouseX, mouseY);
+        } else {
+            dyeBodyHair(mouseX, mouseY);
+        }
+    }
+}
+
+function toggleView() {
+    isFrontView = !isFrontView;
+    playSound('switch');
+}
+
+function updateColor(e) {
+    currentColor = e.target.value;
+}
+
+function updateAccessoryColor(e) {
+    currentAccessoryColor = e.target.value;
+}
+
+// Audio Functions
+let audioElements = {};
+
+function initializeAudio() {
+    audioElements = {
+        brush: new Audio('sounds/brush.mp3'),
+        scissors: new Audio('sounds/scissors.mp3'),
+        dye: new Audio('sounds/dye.mp3'),
+        switch: new Audio('sounds/switch.mp3')
+    };
+    
+    // Preload all sounds
+    Object.values(audioElements).forEach(audio => {
+        audio.load();
+    });
+}
+
+function playSound(soundName) {
+    if (audioElements[soundName]) {
+        audioElements[soundName].currentTime = 0;
+        audioElements[soundName].play().catch(error => {
+            console.log('Audio playback failed:', error);
+        });
+    }
 }
 
 // Sound effects
@@ -202,23 +240,9 @@ const sounds = {
 };
 
 // Play sound with volume adjustment and duration limit
-function playSound(soundName) {
-    const sound = sounds[soundName];
-    sound.volume = 0.3; // Adjust volume to 30%
-    sound.currentTime = 0;
-    // Set the duration to play only the first 0.2 seconds of the sound
-    setTimeout(() => {
-        sound.pause();
-        sound.currentTime = 0;
-    }, 200);
-    sound.play().catch(e => console.log('Sound play failed:', e));
-}
-
-// Add a cooldown system for sounds
-let lastSoundTime = {};
 function playSoundWithCooldown(soundName) {
     const now = Date.now();
-    if (!lastSoundTime[soundName] || now - lastSoundTime[soundName] > 300) {
+    if (!lastSoundTime[soundName] || now - lastSoundTime[soundName] >= 100) {
         playSound(soundName);
         lastSoundTime[soundName] = now;
     }
@@ -227,586 +251,445 @@ function playSoundWithCooldown(soundName) {
 // View state
 let isFrontView = false;
 
-// Guinea pig properties
-const guineaPig = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    width: 200,
-    height: 120,
-    happiness: 100
-};
-
-// Hair properties
-const HAIR_LENGTH = 25;
-const HAIR_DENSITY = 50; // Reduced since we now have two collections
-
-// Initialize hair on the guinea pig
 function initializeHair() {
     bodyHair = [];
     faceHair = [];
-    // Initialize body hair
-    for (let i = 0; i < HAIR_DENSITY; i++) {
+    
+    // Add some initial hair
+    for (let i = 0; i < 20; i++) {
         addBodyHair();
-    }
-    // Initialize face hair
-    for (let i = 0; i < HAIR_DENSITY/2; i++) {
         addFaceHair();
     }
 }
 
 function addBodyHair() {
-    const angle = Math.random() * Math.PI * 2;
-    const radiusX = (guineaPig.width / 2) * Math.sqrt(Math.random()) * 0.8;
-    const radiusY = (guineaPig.height / 2) * Math.sqrt(Math.random()) * 0.8;
-    
-    const x = guineaPig.x + Math.cos(angle) * radiusX;
-    const y = guineaPig.y + Math.sin(angle) * radiusY;
+    const angle = Math.random() * Math.PI - Math.PI/2; // -90 to 90 degrees
+    const x = guineaPig.x + Math.cos(angle) * (guineaPig.width/2 * 0.8);
+    const y = guineaPig.y + Math.sin(angle) * (guineaPig.height/2 * 0.8);
     
     bodyHair.push({
         x: x,
         y: y,
+        length: Math.random() * 15 + 10,
         angle: angle,
-        length: HAIR_LENGTH,
-        cut: false,
         color: varyColor(currentColor)
     });
 }
 
 function addFaceHair() {
     const angle = Math.random() * Math.PI * 2;
-    const radius = (guineaPig.height / 1.5) * Math.sqrt(Math.random()) * 0.8;
-    
-    const x = guineaPig.x + Math.cos(angle) * radius;
-    const y = guineaPig.y + Math.sin(angle) * radius;
+    const x = guineaPig.x + Math.cos(angle) * (guineaPig.width/2 * 0.8);
+    const y = guineaPig.y + Math.sin(angle) * (guineaPig.height/2 * 0.8);
     
     faceHair.push({
         x: x,
         y: y,
-        angle: angle, // Hair grows outward from center
-        length: HAIR_LENGTH,
-        cut: false,
+        length: Math.random() * 15 + 10,
+        angle: angle,
         color: varyColor(currentColor)
     });
 }
 
 function addHairAtPosition(x, y) {
-    const dx = (x - guineaPig.x);
-    const dy = (y - guineaPig.y);
+    const dx = x - guineaPig.x;
+    const dy = y - guineaPig.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (isFrontView) {
-        const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-        if (distanceFromCenter <= guineaPig.height / 1.5) {
-            const angle = Math.atan2(dy, dx);
-            const spot = getNearbySpot(x, y);
-            
-            faceHair.push({
-                x: x,
-                y: y,
-                angle: angle,
-                length: HAIR_LENGTH,
-                cut: false,
-                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
-            });
-            return true;
+    // Only add hair if within guinea pig's body
+    if (distance <= guineaPig.width/2) {
+        const angle = Math.atan2(dy, dx);
+        
+        const hair = {
+            x: x,
+            y: y,
+            length: Math.random() * 15 + 10,
+            angle: angle,
+            color: varyColor(currentColor)
+        };
+        
+        if (isFrontView) {
+            faceHair.push(hair);
+        } else {
+            bodyHair.push(hair);
         }
-    } else {
-        const normalizedX = dx / (guineaPig.width / 2);
-        const normalizedY = dy / (guineaPig.height / 2);
-        if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1.44) {
-            const spot = getNearbySpot(x, y);
-            
-            bodyHair.push({
-                x: x,
-                y: y,
-                angle: Math.atan2(dy, dx),
-                length: HAIR_LENGTH,
-                cut: false,
-                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
-            });
-            return true;
-        }
-    }
-    return false;
-}
-
-function handleGrooming(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    let actionTaken = false;
-    const currentHairArray = isFrontView ? faceHair : bodyHair;
-
-    switch(currentTool) {
-        case 'scissors':
-            currentHairArray.forEach(hair => {
-                const distance = Math.sqrt(
-                    Math.pow(x - hair.x, 2) + Math.pow(y - hair.y, 2)
-                );
-                
-                if (distance < 20 && !hair.cut) {
-                    hair.cut = true;
-                    actionTaken = true;
-                }
-            });
-            if (actionTaken) playSoundWithCooldown('cut');
-            break;
-
-        case 'brush':
-            // Add 3 hairs at slightly offset positions for a fuller brush stroke
-            for (let i = 0; i < 3; i++) {
-                const offsetX = x + (Math.random() - 0.5) * 10;
-                const offsetY = y + (Math.random() - 0.5) * 10;
-                if (addHairAtPosition(offsetX, offsetY)) {
-                    actionTaken = true;
-                    if (i === 0) playSoundWithCooldown('brush');
-                }
-            }
-            break;
-
-        case 'dye':
-            let colorChanged = false;
-            currentHairArray.forEach(hair => {
-                if (!hair.cut && hair.color !== currentColor) {
-                    const spot = getNearbySpot(hair.x, hair.y);
-                    hair.color = spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor);
-                    colorChanged = true;
-                    actionTaken = true;
-                }
-            });
-            if (colorChanged) playSoundWithCooldown('color');
-            break;
-
-        case 'paintbrush':
-            let painted = false;
-            currentHairArray.forEach(hair => {
-                const distance = Math.sqrt(
-                    Math.pow(x - hair.x, 2) + Math.pow(y - hair.y, 2)
-                );
-                
-                if (distance < 20 && !hair.cut && hair.color !== currentColor) {
-                    const spot = getNearbySpot(hair.x, hair.y);
-                    hair.color = spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor);
-                    painted = true;
-                    actionTaken = true;
-                }
-            });
-            if (painted) playSoundWithCooldown('color');
-            break;
-    }
-
-    if (actionTaken) {
-        //updateHappiness(1);
+        
+        playSoundWithCooldown('brush');
     }
 }
 
 function drawUI() {
-    ctx.fillStyle = 'black';
-    ctx.font = '24px Arial';
+    ctx.fillStyle = '#000';
+    ctx.font = '20px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(`${guineaPigName}'s Salon Day!`, canvas.width/2, 30);
+    ctx.fillText(guineaPigName, guineaPig.x, 50);
 }
 
 function drawGuineaPig() {
     if (isFrontView) {
         drawFrontViewGuineaPig();
-        drawHair(faceHair);
-        drawFrontViewFace();
-        // Only draw accessories in front view
-        if (accessories.bow.active) drawBow();
-        if (accessories.hat.active) drawHat();
-        if (accessories.glasses.active) drawGlasses();
-        if (accessories.bowtie.active) drawBowtie();
     } else {
         drawSideViewGuineaPig();
-        drawHair(bodyHair);
-        drawSideViewFace();
     }
 }
 
 function drawHair(hairArray) {
     hairArray.forEach(hair => {
-        if (!hair.cut) {
-            ctx.strokeStyle = hair.color;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(hair.x, hair.y);
-            ctx.lineTo(
-                hair.x + Math.cos(hair.angle) * hair.length,
-                hair.y + Math.sin(hair.angle) * hair.length
-            );
-            ctx.stroke();
-        }
+        ctx.strokeStyle = hair.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(hair.x, hair.y);
+        ctx.lineTo(
+            hair.x + Math.cos(hair.angle) * hair.length,
+            hair.y + Math.sin(hair.angle) * hair.length
+        );
+        ctx.stroke();
     });
 }
 
 function drawFrontViewFace() {
-    // Eyes
-    ctx.fillStyle = 'black';
+    // Draw eyes
+    ctx.fillStyle = '#000';
     ctx.beginPath();
-    ctx.arc(guineaPig.x - 25, guineaPig.y - 10, 8, 0, Math.PI * 2);
-    ctx.arc(guineaPig.x + 25, guineaPig.y - 10, 8, 0, Math.PI * 2);
+    ctx.arc(
+        guineaPig.x - guineaPig.width/6,
+        guineaPig.y,
+        guineaPig.eyeSize,
+        0, Math.PI * 2
+    );
     ctx.fill();
-
-    // Nose
-    ctx.fillStyle = 'pink';
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y + 20, 15, 10, 0, 0, Math.PI * 2);
+    ctx.arc(
+        guineaPig.x + guineaPig.width/6,
+        guineaPig.y,
+        guineaPig.eyeSize,
+        0, Math.PI * 2
+    );
     ctx.fill();
-
-    // Mouth
-    ctx.strokeStyle = '#663300';
-    ctx.lineWidth = 2;
+    
+    // Draw nose
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y + 35, 10, 0.1, Math.PI - 0.1);
-    ctx.stroke();
+    ctx.arc(
+        guineaPig.x,
+        guineaPig.y + guineaPig.height/6,
+        guineaPig.noseSize,
+        0, Math.PI * 2
+    );
+    ctx.fill();
 }
 
 function drawSideViewFace() {
-    // Eyes
-    ctx.fillStyle = 'black';
+    // Draw eye
+    ctx.fillStyle = '#000';
     ctx.beginPath();
-    ctx.arc(guineaPig.x + 70, guineaPig.y - 20, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(guineaPig.x + 70, guineaPig.y + 20, 5, 0, Math.PI * 2);
+    ctx.arc(
+        guineaPig.x + guineaPig.width/4,
+        guineaPig.y - guineaPig.height/8,
+        guineaPig.eyeSize,
+        0, Math.PI * 2
+    );
     ctx.fill();
     
-    // Nose
-    ctx.fillStyle = 'pink';
+    // Draw nose
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x + 90, guineaPig.y, 10, 7, 0, 0, Math.PI * 2);
+    ctx.arc(
+        guineaPig.x + guineaPig.width/2,
+        guineaPig.y,
+        guineaPig.noseSize,
+        0, Math.PI * 2
+    );
     ctx.fill();
 }
 
 function drawFrontViewGuineaPig() {
-    // Draw round body
+    // Draw body (circle)
     ctx.fillStyle = bodyColor;
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y, guineaPig.height / 1.5, 0, Math.PI * 2);
+    ctx.arc(
+        guineaPig.x,
+        guineaPig.y,
+        guineaPig.height/2,
+        0, Math.PI * 2
+    );
     ctx.fill();
     
     // Draw spots
     drawSpots();
-
-    // Draw ears with darker shade
-    const earColor = darkenColor(bodyColor);
-    ctx.fillStyle = earColor;
-    const earSize = 25;
-
-    // Left ear (fixed position and angle)
-    ctx.beginPath();
-    ctx.save();
-    ctx.translate(guineaPig.x - 50, guineaPig.y - 50);
-    ctx.rotate(-Math.PI/6);
-    ctx.ellipse(0, 0, earSize, earSize/1.5, 0, 0, Math.PI * 2);
-    ctx.restore();
-    ctx.fill();
-
-    // Right ear (fixed position and angle)
-    ctx.beginPath();
-    ctx.save();
-    ctx.translate(guineaPig.x + 50, guineaPig.y - 50);
-    ctx.rotate(Math.PI/6);
-    ctx.ellipse(0, 0, earSize, earSize/1.5, 0, 0, Math.PI * 2);
-    ctx.restore();
-    ctx.fill();
+    
+    // Draw hair
+    drawHair(faceHair);
+    
+    // Draw face
+    drawFrontViewFace();
+    
+    // Draw accessories
+    if (accessories.glasses.active) drawGlasses();
+    if (accessories.hat.active) drawHat();
+    if (accessories.bow.active) drawBow();
+    if (accessories.bowtie.active) drawBowtie();
 }
 
 function drawSideViewGuineaPig() {
-    // Draw body
+    // Draw body (ellipse)
     ctx.fillStyle = bodyColor;
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y, guineaPig.width / 2, guineaPig.height / 2, 0, 0, Math.PI * 2);
+    ctx.ellipse(
+        guineaPig.x,
+        guineaPig.y,
+        guineaPig.width/2,
+        guineaPig.height/2,
+        0, 0, Math.PI * 2
+    );
     ctx.fill();
     
     // Draw spots
     drawSpots();
-
-    // Draw tail
-    const tailColor = darkenColor(bodyColor);
-    ctx.fillStyle = tailColor;
-    ctx.beginPath();
-    // Draw a cute round tail at the back
-    const tailX = guineaPig.x - guineaPig.width/2 + 10;
-    const tailY = guineaPig.y - 10;
-    ctx.arc(tailX, tailY, 15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw ears (slightly darker than body)
-    ctx.fillStyle = tailColor;
-    // Left ear
-    ctx.beginPath();
-    ctx.ellipse(guineaPig.x + 60, guineaPig.y - 35, 20, 15, Math.PI/4, 0, Math.PI * 2);
-    ctx.fill();
-    // Right ear
-    ctx.beginPath();
-    ctx.ellipse(guineaPig.x + 60, guineaPig.y + 35, 20, 15, -Math.PI/4, 0, Math.PI * 2);
-    ctx.fill();
+    
+    // Draw hair
+    drawHair(bodyHair);
+    
+    // Draw face
+    drawSideViewFace();
 }
 
 function drawGlasses() {
+    const x = isFrontView ? guineaPig.x : guineaPig.x + guineaPig.width/4;
+    const y = isFrontView ? guineaPig.y : guineaPig.y - guineaPig.height/8;
+    
     ctx.strokeStyle = currentAccessoryColor;
     ctx.lineWidth = 3;
     
-    // Left lens
-    ctx.beginPath();
-    ctx.arc(guineaPig.x - 25, guineaPig.y - 10, 15, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    // Right lens
-    ctx.beginPath();
-    ctx.arc(guineaPig.x + 25, guineaPig.y - 10, 15, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    // Bridge
-    ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 10, guineaPig.y - 10);
-    ctx.lineTo(guineaPig.x + 10, guineaPig.y - 10);
-    ctx.stroke();
+    if (isFrontView) {
+        // Left lens
+        ctx.beginPath();
+        ctx.arc(x - guineaPig.width/6, y, guineaPig.eyeSize * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Right lens
+        ctx.beginPath();
+        ctx.arc(x + guineaPig.width/6, y, guineaPig.eyeSize * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Bridge
+        ctx.beginPath();
+        ctx.moveTo(x - guineaPig.width/6 + guineaPig.eyeSize, y);
+        ctx.lineTo(x + guineaPig.width/6 - guineaPig.eyeSize, y);
+        ctx.stroke();
+    } else {
+        // Side lens
+        ctx.beginPath();
+        ctx.arc(x, y, guineaPig.eyeSize * 1.5, 0, Math.PI * 2);
+        ctx.stroke();
+    }
 }
 
 function drawHat() {
+    const x = isFrontView ? guineaPig.x : guineaPig.x + guineaPig.width/4;
+    const y = isFrontView ? guineaPig.y - guineaPig.height/2 : guineaPig.y - guineaPig.height/2;
+    const width = isFrontView ? guineaPig.width/2 : guineaPig.width/3;
+    const height = guineaPig.height/4;
+    
     ctx.fillStyle = currentAccessoryColor;
-    ctx.strokeStyle = 'black';
+    ctx.strokeStyle = darkenColor(currentAccessoryColor);
     ctx.lineWidth = 2;
     
-    // Draw complete hat with proper perspective
-    // Hat brim
+    // Draw brim
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 85, 60, 20, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 85, 60, 20, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    // Hat body (cylinder) - fill only
-    ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 130);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 130);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 85);
-    ctx.fill();
-    
-    // Draw only the side lines of the cylinder
-    ctx.beginPath();
-    ctx.moveTo(guineaPig.x - 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 130);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(guineaPig.x + 35, guineaPig.y - 85);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 130);
-    ctx.stroke();
-    
-    // Hat top
-    ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 130, 35, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(x, y + height/2, width/1.5, height/4, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     
-    // Add a decorative band
-    ctx.fillStyle = '#000';
+    // Draw top
     ctx.beginPath();
-    ctx.rect(guineaPig.x - 35, guineaPig.y - 100, 70, 10);
+    ctx.ellipse(x, y + height/4, width/2, height/4, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(x - width/2, y + height/4);
+    ctx.lineTo(x - width/2, y - height/2);
+    ctx.lineTo(x + width/2, y - height/2);
+    ctx.lineTo(x + width/2, y + height/4);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Draw top circle
+    ctx.beginPath();
+    ctx.ellipse(x, y - height/2, width/2, height/4, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Draw band
+    ctx.fillStyle = darkenColor(currentAccessoryColor);
+    ctx.beginPath();
+    ctx.rect(x - width/2, y, width, height/4);
     ctx.fill();
 }
 
 function drawBow() {
+    const x = isFrontView ? guineaPig.x : guineaPig.x - guineaPig.width/4;
+    const y = isFrontView ? guineaPig.y - guineaPig.height/2 : guineaPig.y - guineaPig.height/2;
+    const size = guineaPig.height/4;
+    
     ctx.fillStyle = currentAccessoryColor;
+    ctx.strokeStyle = darkenColor(currentAccessoryColor);
+    ctx.lineWidth = 2;
     
-    // Left loop
+    // Draw left loop
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x - 15, guineaPig.y - 70, 10, 15, Math.PI/4, 0, Math.PI * 2);
+    ctx.ellipse(x - size/2, y, size/2, size/4, Math.PI/4, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
     
-    // Right loop
+    // Draw right loop
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x + 15, guineaPig.y - 70, 10, 15, -Math.PI/4, 0, Math.PI * 2);
+    ctx.ellipse(x + size/2, y, size/2, size/4, -Math.PI/4, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
     
-    // Center knot
+    // Draw center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y - 70, 5, 0, Math.PI * 2);
+    ctx.arc(x, y, size/4, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
 }
 
 function drawBowtie() {
+    const x = isFrontView ? guineaPig.x : guineaPig.x + guineaPig.width/4;
+    const y = isFrontView ? guineaPig.y + guineaPig.height/3 : guineaPig.y + guineaPig.height/4;
+    const size = guineaPig.height/4;
+    
     ctx.fillStyle = currentAccessoryColor;
+    ctx.strokeStyle = darkenColor(currentAccessoryColor);
+    ctx.lineWidth = 2;
     
-    // Left triangle
+    // Draw left triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 35);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 55);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - size, y - size/2);
+    ctx.lineTo(x - size, y + size/2);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
     
-    // Right triangle
+    // Draw right triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 35);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 55);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + size, y - size/2);
+    ctx.lineTo(x + size, y + size/2);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
     
-    // Center knot
+    // Draw center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y + 45, 3, 0, Math.PI * 2);
+    ctx.arc(x, y, size/4, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
+}
+
+function clearCanvas() {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw() {
+    clearCanvas();
+    drawUI();
+    drawGuineaPig();
+    drawSparkles();
+}
+
+function update() {
+    updateSparkles();
 }
 
 function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    drawGuineaPig();
-    drawUI();
-    
-    // Decrease happiness if there's too little or too much hair
-    const currentHairArray = isFrontView ? faceHair : bodyHair;
-    const uncut = currentHairArray.filter(hair => !hair.cut).length;
-    if (uncut < HAIR_DENSITY * 0.3 || uncut > HAIR_DENSITY * 1.5) {
-        //guineaPig.happiness = Math.max(0, guineaPig.happiness - 0.1);
-    }
-    
+    update();
+    draw();
     requestAnimationFrame(gameLoop);
 }
 
-// Color picker event listener
-document.getElementById('colorPicker').addEventListener('input', (e) => {
-    if (currentColor !== e.target.value) {
-        currentColor = e.target.value;
-        playSoundWithCooldown('color');
-    }
-});
-
-// Body color picker
-document.getElementById('bodyColorPicker').addEventListener('input', (e) => {
-    if (bodyColor !== e.target.value) {
-        bodyColor = e.target.value;
-        playSoundWithCooldown('color');
-    }
-});
-
-// Tool buttons
-const tools = ['scissors', 'brush', 'dye', 'paintbrush'];
-tools.forEach(tool => {
-    document.getElementById(tool).addEventListener('click', () => {
-        currentTool = tool;
-        tools.forEach(t => {
-            document.getElementById(t).classList.remove('selected');
-        });
-        document.getElementById(tool).classList.add('selected');
-    });
-});
-
-// Accessory event listeners
-const accessoryButtons = ['bow', 'hat', 'glasses', 'bowtie'];
-accessoryButtons.forEach(accessory => {
-    document.getElementById(accessory).addEventListener('click', () => {
-        toggleAccessory(accessory);
-        playSoundWithCooldown('accessory');
-        
-        // Toggle button selection
-        const button = document.getElementById(accessory);
-        if (accessories[accessory].active) {
-            accessoryButtons.forEach(a => document.getElementById(a).classList.remove('selected'));
-            button.classList.add('selected');
-        } else {
-            button.classList.remove('selected');
-        }
-    });
-});
-
-// Accessory color picker
-document.getElementById('accessoryColorPicker').addEventListener('input', (e) => {
-    currentAccessoryColor = e.target.value;
-    playSoundWithCooldown('color');
-});
-
-// View toggle button
-document.getElementById('viewToggle').addEventListener('click', () => {
-    isFrontView = !isFrontView;
+function initializeCanvas() {
+    canvas.width = 800;
+    canvas.height = 600;
     
-    // Show/hide accessory buttons based on view
-    const accessoryDiv = document.querySelector('.accessories');
-    if (isFrontView) {
-        accessoryDiv.style.display = 'flex';
-    } else {
-        accessoryDiv.style.display = 'none';
-        // Remove all accessories when switching to side view
-        Object.keys(accessories).forEach(acc => {
-            accessories[acc].active = false;
-            document.getElementById(acc).classList.remove('selected');
-        });
-    }
-});
+    // Center the guinea pig
+    guineaPig.x = canvas.width / 2;
+    guineaPig.y = canvas.height / 2;
+}
 
-// Mouse interaction
-let isMouseDown = false;
-canvas.addEventListener('mousedown', (e) => {
-    isMouseDown = true;
-    handleGrooming(e);
-});
-canvas.addEventListener('mousemove', (e) => {
-    if (isMouseDown) {
-        handleGrooming(e);
-    }
-});
-canvas.addEventListener('mouseup', () => {
-    isMouseDown = false;
-});
-
-// Start the game
 function initializeGame() {
-    generateGuineaPigName();
-    bodyColor = generateRandomGuineaPigColor();
-    bodyHair = [];
-    faceHair = [];
+    // Initialize canvas
+    initializeCanvas();
+    
+    // Generate random spots
     initializeSpots();
-    currentTool = 'brush';
-    currentColor = bodyColor; // Start with hair color matching body
-    currentAccessoryColor = '#ff0000';
-    isFrontView = false;
-    accessories = {
-        bow: { active: false },
-        glasses: { active: false },
-        hat: { active: false },
-        bowtie: { active: false }
+    
+    // Generate random name
+    guineaPigName = guineaPigNames[Math.floor(Math.random() * guineaPigNames.length)];
+    
+    // Start game loop
+    gameLoop();
+    
+    // Add event listeners
+    canvas.addEventListener('mousedown', handleGrooming);
+    document.getElementById('viewToggle').addEventListener('click', toggleView);
+    document.getElementById('colorPicker').addEventListener('change', updateColor);
+    document.getElementById('accessoryColorPicker').addEventListener('change', updateAccessoryColor);
+    
+    // Initialize audio
+    initializeAudio();
+}
+
+// Animation and Effects
+function addSparkle(x, y) {
+    const sparkle = {
+        x,
+        y,
+        size: 10,
+        alpha: 1,
+        angle: Math.random() * Math.PI * 2
     };
+    sparkles.push(sparkle);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const bodyColorPicker = document.getElementById('bodyColorPicker');
-    if (bodyColorPicker) {
-        bodyColorPicker.value = bodyColor;
+function updateSparkles() {
+    for (let i = sparkles.length - 1; i >= 0; i--) {
+        const sparkle = sparkles[i];
+        sparkle.alpha -= 0.05;
+        sparkle.size += 0.5;
+        if (sparkle.alpha <= 0) {
+            sparkles.splice(i, 1);
+        }
     }
-});
-
-function toggleAccessory(accessory) {
-    if (!isFrontView && accessory !== 'hat') {
-        return; // Only hat is visible in side view
-    }
-    accessories[accessory].active = !accessories[accessory].active;
 }
 
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    drawGuineaPig();
-    drawUI();
-    
-    // Draw accessories in front view
-    if (isFrontView) {
-        if (accessories.bow.active) drawBow();
-        if (accessories.glasses.active) drawGlasses();
-        if (accessories.bowtie.active) drawBowtie();
-    }
-    // Hat is visible in both views
-    if (accessories.hat.active) drawHat();
-    
-    requestAnimationFrame(gameLoop);
+function drawSparkles() {
+    sparkles.forEach(sparkle => {
+        ctx.save();
+        ctx.translate(sparkle.x, sparkle.y);
+        ctx.rotate(sparkle.angle);
+        ctx.globalAlpha = sparkle.alpha;
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        
+        // Draw star shape
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * Math.PI * 2) / 5;
+            const x = Math.cos(angle) * sparkle.size;
+            const y = Math.sin(angle) * sparkle.size;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+    });
 }
 
-initializeGame();
-gameLoop();
+// Start the game when the window loads
+window.addEventListener('load', initializeGame);

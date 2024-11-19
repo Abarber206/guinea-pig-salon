@@ -1,0 +1,5 @@
+This directory contains sound files for the game:
+- cut.mp3
+- brush.mp3
+- pop.mp3
+- color.mp3
