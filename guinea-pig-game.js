@@ -724,23 +724,62 @@ document.getElementById('accessoryColorPicker').addEventListener('input', (e) =>
     playSoundWithCooldown('color');
 });
 
-// View toggle button
+// View toggle button event listener
 document.getElementById('viewToggle').addEventListener('click', () => {
     isFrontView = !isFrontView;
-    
-    // Show/hide accessory buttons based on view
+    const viewButton = document.getElementById('viewToggle');
     const accessoryDiv = document.querySelector('.accessories');
+    
     if (isFrontView) {
+        viewButton.textContent = 'Side View';
+        // Show only front-view accessories (glasses, hat)
         accessoryDiv.style.display = 'flex';
+        document.getElementById('glasses').style.display = 'block';
+        document.getElementById('hat').style.display = 'block';
+        document.getElementById('bow').style.display = 'none';
+        document.getElementById('bowtie').style.display = 'none';
+        // Disable active accessories that aren't visible in this view
+        if (accessories.bow.active || accessories.bowtie.active) {
+            accessories.bow.active = false;
+            accessories.bowtie.active = false;
+            document.getElementById('bow').classList.remove('selected');
+            document.getElementById('bowtie').classList.remove('selected');
+        }
     } else {
-        accessoryDiv.style.display = 'none';
-        // Remove all accessories when switching to side view
-        Object.keys(accessories).forEach(acc => {
-            accessories[acc].active = false;
-            document.getElementById(acc).classList.remove('selected');
-        });
+        viewButton.textContent = 'Front View';
+        // Show only side-view accessories (bow, bowtie)
+        accessoryDiv.style.display = 'flex';
+        document.getElementById('glasses').style.display = 'none';
+        document.getElementById('hat').style.display = 'none';
+        document.getElementById('bow').style.display = 'block';
+        document.getElementById('bowtie').style.display = 'block';
+        // Disable active accessories that aren't visible in this view
+        if (accessories.glasses.active || accessories.hat.active) {
+            accessories.glasses.active = false;
+            accessories.hat.active = false;
+            document.getElementById('glasses').classList.remove('selected');
+            document.getElementById('hat').classList.remove('selected');
+        }
     }
 });
+
+// Initialize accessory visibility
+function initializeAccessoryVisibility() {
+    const accessoryDiv = document.querySelector('.accessories');
+    accessoryDiv.style.display = 'flex';
+    
+    if (isFrontView) {
+        document.getElementById('glasses').style.display = 'block';
+        document.getElementById('hat').style.display = 'block';
+        document.getElementById('bow').style.display = 'none';
+        document.getElementById('bowtie').style.display = 'none';
+    } else {
+        document.getElementById('glasses').style.display = 'none';
+        document.getElementById('hat').style.display = 'none';
+        document.getElementById('bow').style.display = 'block';
+        document.getElementById('bowtie').style.display = 'block';
+    }
+}
 
 // Mouse interaction
 let isMouseDown = false;
@@ -774,6 +813,7 @@ function initializeGame() {
         hat: { active: false },
         bowtie: { active: false }
     };
+    initializeAccessoryVisibility();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

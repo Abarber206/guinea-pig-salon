@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def root():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory('.', 'guinea-pig-salon.html')
 
 @app.route('/guinea-pig-salon')
 def guinea_pig_salon():
