@@ -28,6 +28,16 @@ function generateRandomGuineaPigColor() {
     return guineaPigColors[Math.floor(Math.random() * guineaPigColors.length)];
 }
 
+function generateRandomPink() {
+    // Red will be high (220-255)
+    // Green will be moderate (160-190)
+    // Blue will be lower (150-170) to avoid purple tints
+    const red = Math.floor(Math.random() * 36) + 220;   // 220-255
+    const green = Math.floor(Math.random() * 31) + 160; // 160-190
+    const blue = Math.floor(Math.random() * 21) + 150;  // 150-170
+    return `rgb(${red}, ${green}, ${blue})`;
+}
+
 // Helper function to add slight variation to colors
 function varyColor(baseColor) {
     // Convert hex to RGB
@@ -101,6 +111,22 @@ function adjustColorForSpotOld(baseColor, isDark) {
         const hex = x.toString(16);
         return hex.length === 1 ? '0' + hex : hex;
     }).join('');
+}
+
+// Helper function to lighten a color
+function lightenColor(color) {
+    // Convert hex to RGB
+    let r = parseInt(color.slice(1, 3), 16);
+    let g = parseInt(color.slice(3, 5), 16);
+    let b = parseInt(color.slice(5, 7), 16);
+    
+    // Lighten by 15%
+    r = Math.min(255, r + Math.floor((255 - r) * 0.15));
+    g = Math.min(255, g + Math.floor((255 - g) * 0.15));
+    b = Math.min(255, b + Math.floor((255 - b) * 0.15));
+    
+    // Convert back to hex
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
 // Function to check if a point is near a spot
@@ -216,10 +242,18 @@ let isMouseDown = false;
 let canvas = document.getElementById('gameCanvas');
 let ctx = canvas.getContext('2d');
 let accessories = {
-    bow: { active: false, x: 0, y: 0, scale: 1 },
-    hat: { active: false, x: 0, y: 0, scale: 1 },
-    glasses: { active: false, x: 0, y: 0, scale: 1 },
-    bowtie: { active: false, x: 0, y: 0, scale: 1 }
+    front: {
+        bow: false,
+        hat: false,
+        glasses: false,
+        bowtie: false
+    },
+    side: {
+        bow: false,
+        hat: false,
+        glasses: false,
+        bowtie: false
+    }
 };
 let spots = [];
 
@@ -232,11 +266,18 @@ const guineaPig = {
     y: canvas.height / 2,
     width: 200,
     height: 120,
-    happiness: 100
+    happiness: 100,
+    pinkColor: '',  // Single pink color for nose and ears
+    whiskers: {
+        frontLeft: [],
+        frontRight: [],
+        sideUpper: [],
+        sideLower: []
+    }
 };
 
 // Hair properties
-const HAIR_LENGTH = 25;
+const HAIR_LENGTH = 15;
 const HAIR_DENSITY = 50; // Reduced since we now have two collections
 
 // Initialize hair on the guinea pig
@@ -297,34 +338,69 @@ function addHairAtPosition(x, y) {
     const dy = (y - guineaPig.y);
     
     if (isFrontView) {
+        // Check if point is in inner ear regions
+        const leftInnerEarDist = Math.sqrt(
+            Math.pow(x - (guineaPig.x - 50), 2) + 
+            Math.pow(y - (guineaPig.y - 50), 2)
+        );
+        const rightInnerEarDist = Math.sqrt(
+            Math.pow(x - (guineaPig.x + 50), 2) + 
+            Math.pow(y - (guineaPig.y - 50), 2)
+        );
+        
+        // Don't place hair if inside inner ear regions
+        const earSize = 25;
+        if (leftInnerEarDist <= earSize/1.8 || rightInnerEarDist <= earSize/1.8) {
+            return false;
+        }
+
+        // Use larger area for hair placement while keeping face size the same
         const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-        if (distanceFromCenter <= guineaPig.height / 1.5) {
+        const hairPlacementRadius = guineaPig.width / 2.2;
+        
+        if (distanceFromCenter <= hairPlacementRadius) {
             const angle = Math.atan2(dy, dx);
-            const spot = getNearbySpot(x, y);
+            
+            // Check if we're in an ear region
+            const isInLeftEar = leftInnerEarDist <= earSize * 1.2;
+            const isInRightEar = rightInnerEarDist <= earSize * 1.2;
+            
+            // If in ear region, use darker color
+            let hairColor;
+            if (isInLeftEar || isInRightEar) {
+                const darkerColor = darkenColor(currentColor);
+                hairColor = darkenColor(darkerColor); // Double darken for ear hair
+            } else {
+                const spot = getNearbySpot(x, y);
+                hairColor = spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor);
+            }
             
             faceHair.push({
                 x: x,
                 y: y,
                 angle: angle,
-                length: HAIR_LENGTH,
+                length: 15,
                 cut: false,
-                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
+                color: hairColor
             });
             return true;
         }
     } else {
+        // Keep existing side view logic
         const normalizedX = dx / (guineaPig.width / 2);
-        const normalizedY = dy / (guineaPig.height / 2);
-        if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1.44) {
+        const normalizedY = dy / (guineaPig.height / 1.8);
+        const isOnBody = (normalizedX * normalizedX + normalizedY * normalizedY) <= 1;
+        
+        if (isOnBody) {
             const spot = getNearbySpot(x, y);
             
             bodyHair.push({
                 x: x,
                 y: y,
                 angle: Math.atan2(dy, dx),
-                length: HAIR_LENGTH,
+                length: 15,
                 cut: false,
-                color: spot ? adjustColorForSpot(currentColor, spot) : varyColor(currentColor)
+                color: spot ? adjustColorForSpot(bodyColor, spot) : varyColor(bodyColor)
             });
             return true;
         }
@@ -414,15 +490,18 @@ function drawGuineaPig() {
         drawFrontViewGuineaPig();
         drawHair(faceHair);
         drawFrontViewFace();
-        // Only draw accessories in front view
-        if (accessories.bow.active) drawBow();
-        if (accessories.hat.active) drawHat();
-        if (accessories.glasses.active) drawGlasses();
-        if (accessories.bowtie.active) drawBowtie();
+        // Draw accessories in front view
+        const view = 'front';
+        if (accessories[view].bow) drawBow();
+        if (accessories[view].hat) drawHat();
+        if (accessories[view].glasses) drawGlasses();
+        if (accessories[view].bowtie) drawBowtie();
     } else {
         drawSideViewGuineaPig();
         drawHair(bodyHair);
         drawSideViewFace();
+        // Only draw hat in side view if it's enabled for side view
+        if (accessories.side.hat) drawHat();
     }
 }
 
@@ -451,7 +530,7 @@ function drawFrontViewFace() {
     ctx.fill();
 
     // Nose
-    ctx.fillStyle = 'pink';
+    ctx.fillStyle = guineaPig.pinkColor;
     ctx.beginPath();
     ctx.ellipse(guineaPig.x, guineaPig.y + 20, 15, 10, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -462,6 +541,36 @@ function drawFrontViewFace() {
     ctx.beginPath();
     ctx.arc(guineaPig.x, guineaPig.y + 35, 10, 0.1, Math.PI - 0.1);
     ctx.stroke();
+
+    // Whiskers
+    ctx.strokeStyle = '#DDDDDD';
+    ctx.lineWidth = 1.5;
+    
+    // Left whiskers
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(guineaPig.x - 15, guineaPig.y + 20 + (i * 5 - 5));
+        ctx.quadraticCurveTo(
+            guineaPig.x - 35, 
+            guineaPig.y + 15 + (i * 5 - 5),
+            guineaPig.x - 50 * guineaPig.whiskers.frontLeft[i], 
+            guineaPig.y + 10 + (i * 8 - 8)
+        );
+        ctx.stroke();
+    }
+
+    // Right whiskers
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(guineaPig.x + 15, guineaPig.y + 20 + (i * 5 - 5));
+        ctx.quadraticCurveTo(
+            guineaPig.x + 35, 
+            guineaPig.y + 15 + (i * 5 - 5),
+            guineaPig.x + 50 * guineaPig.whiskers.frontRight[i], 
+            guineaPig.y + 10 + (i * 8 - 8)
+        );
+        ctx.stroke();
+    }
 }
 
 function drawSideViewFace() {
@@ -475,10 +584,40 @@ function drawSideViewFace() {
     ctx.fill();
     
     // Nose
-    ctx.fillStyle = 'pink';
+    ctx.fillStyle = guineaPig.pinkColor;
     ctx.beginPath();
     ctx.ellipse(guineaPig.x + 90, guineaPig.y, 10, 7, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // Whiskers
+    ctx.strokeStyle = '#DDDDDD';
+    ctx.lineWidth = 1.5;
+    
+    // Upper whiskers
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(guineaPig.x + 85, guineaPig.y - 5);
+        ctx.quadraticCurveTo(
+            guineaPig.x + 100,
+            guineaPig.y - 15 + (i * 10 - 10),
+            guineaPig.x + 115 * guineaPig.whiskers.sideUpper[i],
+            guineaPig.y - 20 + (i * 15 - 15)
+        );
+        ctx.stroke();
+    }
+
+    // Lower whiskers
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(guineaPig.x + 85, guineaPig.y + 5);
+        ctx.quadraticCurveTo(
+            guineaPig.x + 100,
+            guineaPig.y + 15 + (i * 10 - 10),
+            guineaPig.x + 115 * guineaPig.whiskers.sideLower[i],
+            guineaPig.y + 20 + (i * 15 - 15)
+        );
+        ctx.stroke();
+    }
 }
 
 function drawFrontViewGuineaPig() {
@@ -487,7 +626,13 @@ function drawFrontViewGuineaPig() {
     ctx.beginPath();
     ctx.arc(guineaPig.x, guineaPig.y, guineaPig.height / 1.5, 0, Math.PI * 2);
     ctx.fill();
-    
+
+    // Draw inner face circle with lighter color
+    ctx.fillStyle = lightenColor(bodyColor);
+    ctx.beginPath();
+    ctx.arc(guineaPig.x, guineaPig.y + 10, guineaPig.width / 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
     // Draw spots
     drawSpots();
 
@@ -511,6 +656,27 @@ function drawFrontViewGuineaPig() {
     ctx.translate(guineaPig.x + 50, guineaPig.y - 50);
     ctx.rotate(Math.PI/6);
     ctx.ellipse(0, 0, earSize, earSize/1.5, 0, 0, Math.PI * 2);
+    ctx.restore();
+    ctx.fill();
+
+    // Add pink inner ear details
+    ctx.fillStyle = guineaPig.pinkColor;  // Light pink color
+    
+    // Left inner ear
+    ctx.beginPath();
+    ctx.save();
+    ctx.translate(guineaPig.x - 50, guineaPig.y - 50);
+    ctx.rotate(-Math.PI/6);
+    ctx.ellipse(0, 0, earSize/1.8, earSize/2.3, 0, 0, Math.PI * 2);
+    ctx.restore();
+    ctx.fill();
+
+    // Right inner ear
+    ctx.beginPath();
+    ctx.save();
+    ctx.translate(guineaPig.x + 50, guineaPig.y - 50);
+    ctx.rotate(Math.PI/6);
+    ctx.ellipse(0, 0, earSize/1.8, earSize/2.3, 0, 0, Math.PI * 2);
     ctx.restore();
     ctx.fill();
 }
@@ -548,6 +714,8 @@ function drawSideViewGuineaPig() {
 }
 
 function drawGlasses() {
+    if (!isFrontView) return;
+    
     ctx.strokeStyle = currentAccessoryColor;
     ctx.lineWidth = 3;
     
@@ -587,25 +755,25 @@ function drawHat() {
     // Hat body (cylinder) - fill only
     ctx.beginPath();
     ctx.moveTo(guineaPig.x - 35, guineaPig.y - 75);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 120);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 110);  // Reduced height from -120
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 110);  // Reduced height from -120
     ctx.lineTo(guineaPig.x + 35, guineaPig.y - 75);
     ctx.fill();
     
     // Draw only the side lines of the cylinder
     ctx.beginPath();
     ctx.moveTo(guineaPig.x - 35, guineaPig.y - 75);
-    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x - 35, guineaPig.y - 110);  // Reduced height from -120
     ctx.stroke();
     
     ctx.beginPath();
     ctx.moveTo(guineaPig.x + 35, guineaPig.y - 75);
-    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 120);
+    ctx.lineTo(guineaPig.x + 35, guineaPig.y - 110);  // Reduced height from -120
     ctx.stroke();
     
     // Hat top
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x, guineaPig.y - 120, 35, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x, guineaPig.y - 110, 35, 12, 0, 0, Math.PI * 2);  // Reduced height from -120
     ctx.fill();
     ctx.stroke();
     
@@ -616,21 +784,23 @@ function drawHat() {
 }
 
 function drawBow() {
+    if (!isFrontView) return;
+    
     ctx.fillStyle = currentAccessoryColor;
     
     // Left loop
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x - 15, guineaPig.y - 70, 10, 15, Math.PI/4, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x - 15, guineaPig.y - 55, 10, 15, Math.PI/4, 0, Math.PI * 2);
     ctx.fill();
     
     // Right loop
     ctx.beginPath();
-    ctx.ellipse(guineaPig.x + 15, guineaPig.y - 70, 10, 15, -Math.PI/4, 0, Math.PI * 2);
+    ctx.ellipse(guineaPig.x + 15, guineaPig.y - 55, 10, 15, -Math.PI/4, 0, Math.PI * 2);
     ctx.fill();
     
     // Center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y - 70, 5, 0, Math.PI * 2);
+    ctx.arc(guineaPig.x, guineaPig.y - 55, 5, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -641,40 +811,50 @@ function drawBowtie() {
     
     // Left triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 55);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 65);
+    ctx.moveTo(guineaPig.x, guineaPig.y + 55);  
+    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 45);  
+    ctx.lineTo(guineaPig.x - 15, guineaPig.y + 65);  
     ctx.closePath();
     ctx.fill();
     
     // Right triangle
     ctx.beginPath();
-    ctx.moveTo(guineaPig.x, guineaPig.y + 55);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 45);
-    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 65);
+    ctx.moveTo(guineaPig.x, guineaPig.y + 55);  
+    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 45);  
+    ctx.lineTo(guineaPig.x + 15, guineaPig.y + 65);  
     ctx.closePath();
     ctx.fill();
     
     // Center knot
     ctx.beginPath();
-    ctx.arc(guineaPig.x, guineaPig.y + 55, 3, 0, Math.PI * 2);
+    ctx.arc(guineaPig.x, guineaPig.y + 55, 3, 0, Math.PI * 2);  
     ctx.fill();
+}
+
+function drawAccessories() {
+    const view = isFrontView ? 'front' : 'side';
+    
+    // Only draw if in front view and the accessory is enabled for front view
+    if (isFrontView) {
+        if (accessories[view].bow) drawBow();
+        if (accessories[view].hat) drawHat();
+        if (accessories[view].glasses) drawGlasses();
+        if (accessories[view].bowtie) drawBowtie();
+    }
+}
+
+function drawHitbox() {
+    // Function remains for future debugging but doesn't draw anything
+    return;
 }
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     drawGuineaPig();
+    drawAccessories();
+    drawHitbox();  // Add hitbox visualization
     drawUI();
-    
-    // Draw accessories in front view
-    if (isFrontView) {
-        if (accessories.bow.active) drawBow();
-        if (accessories.glasses.active) drawGlasses();
-        if (accessories.bowtie.active) drawBowtie();
-    }
-    // Hat is visible in both views
-    if (accessories.hat.active) drawHat();
     
     requestAnimationFrame(gameLoop);
 }
@@ -781,7 +961,7 @@ accessoryButtons.forEach(accessory => {
         
         // Toggle button selection
         const button = document.getElementById(accessory);
-        if (accessories[accessory].active) {
+        if (accessories[isFrontView ? 'front' : 'side'][accessory]) {
             accessoryButtons.forEach(a => document.getElementById(a).classList.remove('selected'));
             button.classList.add('selected');
         } else {
@@ -807,8 +987,8 @@ document.getElementById('viewToggle').addEventListener('click', () => {
     } else {
         accessoryDiv.style.display = 'none';
         // Remove all accessories when switching to side view
-        Object.keys(accessories).forEach(acc => {
-            accessories[acc].active = false;
+        Object.keys(accessories.side).forEach(acc => {
+            accessories.side[acc] = false;
             document.getElementById(acc).classList.remove('selected');
         });
     }
@@ -894,6 +1074,8 @@ function initializeCanvas() {
 function initializeGame() {
     generateGuineaPigName();
     bodyColor = generateRandomGuineaPigColor();
+    guineaPig.pinkColor = generateRandomPink();
+    initializeWhiskers();
     document.getElementById('bodyColorPicker').value = bodyColor;
     initializeSpots();
     initializeHair();
@@ -901,13 +1083,21 @@ function initializeGame() {
     initializeToolButtons();
     currentTool = 'brush';
     currentColor = bodyColor; // Start with hair color matching body
-    currentAccessoryColor = '#ff0000';
+    currentAccessoryColor = '#FF69B4';
     isFrontView = false;
     accessories = {
-        bow: { active: false, x: 0, y: 0, scale: 1 },
-        hat: { active: false, x: 0, y: 0, scale: 1 },
-        glasses: { active: false, x: 0, y: 0, scale: 1 },
-        bowtie: { active: false, x: 0, y: 0, scale: 1 }
+        front: {
+            bow: false,
+            hat: false,
+            glasses: false,
+            bowtie: false
+        },
+        side: {
+            bow: false,
+            hat: false,
+            glasses: false,
+            bowtie: false
+        }
     };
 
     // Set initial selected tool
@@ -943,18 +1133,24 @@ function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     drawGuineaPig();
+    drawAccessories();
+    drawHitbox();  // Add hitbox visualization
     drawUI();
     
-    // Draw accessories in front view
-    if (isFrontView) {
-        if (accessories.front.bow) drawBow();
-        if (accessories.front.glasses) drawGlasses();
-        if (accessories.front.bowtie) drawBowtie();
-    }
-    // Hat is visible in both views
-    if (accessories.front.hat || accessories.side.hat) drawHat();
-    
     requestAnimationFrame(gameLoop);
+}
+
+function initializeWhiskers() {
+    // Front view whiskers
+    for (let i = 0; i < 3; i++) {
+        guineaPig.whiskers.frontLeft[i] = 0.8 + Math.random() * 0.4;  // 0.8 to 1.2
+        guineaPig.whiskers.frontRight[i] = 0.8 + Math.random() * 0.4;
+    }
+    // Side view whiskers
+    for (let i = 0; i < 3; i++) {
+        guineaPig.whiskers.sideUpper[i] = 0.85 + Math.random() * 0.3;  // 0.85 to 1.15
+        guineaPig.whiskers.sideLower[i] = 0.85 + Math.random() * 0.3;
+    }
 }
 
 initializeGame();
