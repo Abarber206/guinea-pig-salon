@@ -700,6 +700,71 @@ tools.forEach(tool => {
     });
 });
 
+// Add touch event handling for buttons
+function initializeToolButtons() {
+    // Tool selection
+    const tools = ['scissors', 'brush', 'dye', 'paintbrush'];
+    tools.forEach(tool => {
+        const button = document.getElementById(tool);
+        button.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            currentTool = tool;
+            // Remove selected class from all tools
+            tools.forEach(t => document.getElementById(t).classList.remove('selected'));
+            // Add selected class to current tool
+            button.classList.add('selected');
+        });
+    });
+
+    // View toggle
+    const viewToggle = document.getElementById('viewToggle');
+    viewToggle.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        isFrontView = !isFrontView;
+    });
+
+    // Accessories
+    const accessories = ['bow', 'hat', 'glasses', 'bowtie'];
+    accessories.forEach(accessory => {
+        const button = document.getElementById(accessory);
+        button.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            toggleAccessory(accessory);
+            // Toggle selected class
+            button.classList.toggle('selected');
+            playSoundWithCooldown('accessory');
+        });
+    });
+
+    // Color pickers
+    const colorPicker = document.getElementById('colorPicker');
+    colorPicker.addEventListener('input', function(e) {
+        currentColor = e.target.value;
+        playSoundWithCooldown('color');
+    });
+    colorPicker.addEventListener('touchstart', function(e) {
+        e.stopPropagation(); // Prevent canvas from receiving the touch event
+    });
+
+    const accessoryColorPicker = document.getElementById('accessoryColorPicker');
+    accessoryColorPicker.addEventListener('input', function(e) {
+        currentAccessoryColor = e.target.value;
+        playSoundWithCooldown('color');
+    });
+    accessoryColorPicker.addEventListener('touchstart', function(e) {
+        e.stopPropagation(); // Prevent canvas from receiving the touch event
+    });
+
+    const bodyColorPicker = document.getElementById('bodyColorPicker');
+    bodyColorPicker.addEventListener('input', function(e) {
+        bodyColor = e.target.value;
+        playSoundWithCooldown('color');
+    });
+    bodyColorPicker.addEventListener('touchstart', function(e) {
+        e.stopPropagation(); // Prevent canvas from receiving the touch event
+    });
+}
+
 // Accessory event listeners
 const accessoryButtons = ['bow', 'hat', 'glasses', 'bowtie'];
 accessoryButtons.forEach(accessory => {
@@ -809,16 +874,20 @@ function initializeGame() {
     initializeSpots();
     initializeHair();
     initializeCanvas();
+    initializeToolButtons();
     currentTool = 'brush';
     currentColor = bodyColor; // Start with hair color matching body
     currentAccessoryColor = '#ff0000';
     isFrontView = false;
     accessories = {
-        bow: { active: false },
-        glasses: { active: false },
-        hat: { active: false },
-        bowtie: { active: false }
+        bow: { active: false, x: 0, y: 0, scale: 1 },
+        hat: { active: false, x: 0, y: 0, scale: 1 },
+        glasses: { active: false, x: 0, y: 0, scale: 1 },
+        bowtie: { active: false, x: 0, y: 0, scale: 1 }
     };
+
+    // Set initial selected tool
+    document.getElementById('brush').classList.add('selected');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

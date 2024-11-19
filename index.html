@@ -63,16 +63,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        button:hover {
+        button:hover, button:active {
             transform: scale(1.1);
             border-color: #ff69b4;
+            background-color: #fff5f9;
         }
 
         button.selected {
             background: #ffe6f2;
             border-color: #ff69b4;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+            transform: scale(1.1);
         }
 
         input[type="color"] {
@@ -82,6 +89,17 @@
             border-radius: 8px;
             cursor: pointer;
             padding: 0;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 8px;
         }
 
         .side-panel {
